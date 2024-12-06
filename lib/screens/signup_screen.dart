@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+// import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:chat_app/screens/signin_screen.dart';
 import 'package:chat_app/theme/theme.dart';
@@ -13,7 +16,120 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formSignupKey = GlobalKey<FormState>();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool agreePersonalData = true;
+
+  // Firebase Authentication instance
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Function to sign up with email and password
+  Future<void> _signUpWithEmailAndPassword() async {
+    if (_formSignupKey.currentState!.validate() && agreePersonalData) {
+      try {
+        final userCredential = await _auth.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+        await userCredential.user?.updateDisplayName(_fullNameController.text);
+
+        // Show success pop-up
+        await _showSuccessDialog();
+      } on FirebaseAuthException catch (e) {
+        _showErrorSnackBar(e.message ?? 'An error occurred.');
+      }
+    } else if (!agreePersonalData) {
+      _showErrorSnackBar('Please agree to the processing of personal data');
+    }
+  }
+
+  // Function to sign up with Google
+  Future<void> _signUpWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser!.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+      _setDefaultDisplayName(userCredential.user?.email);
+
+      // Show success pop-up
+      await _showSuccessDialog();
+    } on FirebaseAuthException catch (e) {
+      _showErrorSnackBar(e.message ?? 'An error occurred.');
+    }
+  }
+
+  // Function to sign up with Facebook
+  // Future<void> _signUpWithFacebook() async {
+  //   try {
+  //     final LoginResult result = await FacebookAuth.instance.login();
+  //     if (result.status == LoginStatus.success) {
+  //       final OAuthCredential facebookAuthCredential =
+  //           FacebookAuthProvider.credential(result.accessToken?.token ?? '');
+
+  //       final userCredential =
+  //           await _auth.signInWithCredential(facebookAuthCredential);
+  //       _setDefaultDisplayName(userCredential.user?.email);
+
+  //       // Show success pop-up
+  //       await _showSuccessDialog();
+  //     } else {
+  //       _showErrorSnackBar('Facebook login failed.');
+  //     }
+  //   } on FirebaseAuthException catch (e) {
+  //     _showErrorSnackBar(e.message ?? 'An error occurred.');
+  //   }
+  // }
+
+  // Set default display name if the name is missing
+  void _setDefaultDisplayName(String? email) {
+    if (email != null && email.isNotEmpty) {
+      final name = email.split('@')[0].substring(0, 5);
+      _auth.currentUser?.updateDisplayName(name);
+    }
+  }
+
+  // Show success dialog
+  Future<void> _showSuccessDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Success'),
+          content: const Text(
+              'Registration successful. Click OK to access the application.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SignInScreen(),
+                  ),
+                );
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show error snack bar
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomScaffold(
@@ -21,9 +137,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         children: [
           const Expanded(
             flex: 1,
-            child: SizedBox(
-              height: 10,
-            ),
+            child: SizedBox(height: 10),
           ),
           Expanded(
             flex: 10,
@@ -37,26 +151,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
               child: SingleChildScrollView(
-                // get started form
                 child: Form(
                   key: _formSignupKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // get started text
                       Text(
                         'Get Started',
                         style: TextStyle(
                           fontSize: 30.0,
                           fontWeight: FontWeight.w900,
                           color: lightColorScheme.primary,
+                          fontFamily: 'Cinzel',
                         ),
                       ),
-                      const SizedBox(
-                        height: 40.0,
-                      ),
-                      // full name
+                      const SizedBox(height: 40.0),
                       TextFormField(
+                        controller: _fullNameController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Full name';
@@ -68,26 +179,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           hintText: 'Enter Full Name',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
+                            fontFamily: 'Cinzel',
                           ),
                           border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
+                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      // email
+                      const SizedBox(height: 25.0),
                       TextFormField(
+                        controller: _emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter Email';
@@ -99,26 +201,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           hintText: 'Enter Email',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
+                            fontFamily: 'Cinzel',
                           ),
                           border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
+                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      // password
+                      const SizedBox(height: 25.0),
                       TextFormField(
+                        controller: _passwordController,
                         obscureText: true,
                         obscuringCharacter: '*',
                         validator: (value) {
@@ -132,25 +225,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           hintText: 'Enter Password',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
+                            fontFamily: 'Cinzel',
                           ),
                           border: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.black12, // Default border color
-                            ),
+                            borderSide: const BorderSide(color: Colors.black12),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      // i agree to the processing
+                      const SizedBox(height: 25.0),
                       Row(
                         children: [
                           Checkbox(
@@ -166,6 +249,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             'Processing of ',
                             style: TextStyle(
                               color: Colors.black45,
+                              fontFamily: 'Cinzel',
                             ),
                           ),
                           Text(
@@ -173,40 +257,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: lightColorScheme.primary,
+                              fontFamily: 'Cinzel',
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      // signup button
+                      const SizedBox(height: 25.0),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (_formSignupKey.currentState!.validate() &&
-                                agreePersonalData) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Processing Data'),
-                                ),
-                              );
-                            } else if (!agreePersonalData) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Please agree to the processing of personal data')),
-                              );
-                            }
-                          },
+                          onPressed: _signUpWithEmailAndPassword,
                           child: const Text('Sign up'),
                         ),
                       ),
-                      const SizedBox(
-                        height: 30.0,
-                      ),
-                      // sign up divider
+                      const SizedBox(height: 30.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -217,15 +281,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                           const Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 0,
-                              horizontal: 10,
-                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 10),
                             child: Text(
                               'Sign up with',
-                              style: TextStyle(
-                                color: Colors.black45,
-                              ),
+                              style: TextStyle(color: Colors.black45),
                             ),
                           ),
                           Expanded(
@@ -236,31 +295,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 30.0,
-                      ),
-                      // sign up social media logo
+                      const SizedBox(height: 30.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Logo(Logos.facebook_f),
-                          Logo(Logos.twitter),
-                          Logo(Logos.google),
-                          Logo(Logos.apple),
+                          GestureDetector(
+                            // onTap: _signUpWithFacebook,
+                            child: Logo(Logos.facebook_f),
+                          ),
+                          Logo(Logos.twitter), // Add Twitter logic similarly
+                          GestureDetector(
+                            onTap: _signUpWithGoogle,
+                            child: Logo(Logos.google),
+                          ),
+                          Logo(Logos.apple), // Add Apple logic similarly
                         ],
                       ),
-                      const SizedBox(
-                        height: 25.0,
-                      ),
-                      // already have an account
+                      const SizedBox(height: 25.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
                             'Already have an account? ',
-                            style: TextStyle(
-                              color: Colors.black45,
-                            ),
+                            style: TextStyle(color: Colors.black45),
                           ),
                           GestureDetector(
                             onTap: () {
@@ -281,9 +338,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 20.0,
-                      ),
+                      const SizedBox(height: 20.0),
                     ],
                   ),
                 ),

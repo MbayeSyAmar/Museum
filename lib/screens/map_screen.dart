@@ -1,25 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart'; // Ensure this import is used
+import 'package:latlong2/latlong.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:chat_app/screens/coffee_model.dart';
+import 'package:chat_app/screens/page_collection.dart';
 
-class MyHomePage extends StatefulWidget {
+class MapPage extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _MapPageState createState() => _MapPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MapPageState extends State<MapPage> {
   late MapController _mapController;
   List<Marker> allMarkers = [];
   late PageController _pageController;
   int prevPage = 0;
+
+  // Liste des dates à mettre en surbrillance
+  final List<DateTime> highlightedDates = [
+    DateTime(2024, 12, 25), // Noël
+    DateTime(2024, 1, 1),   // Nouvel An
+    DateTime(2024, 7, 14),  // Fête nationale française
+  ];
+
+  // Détails des événements liés aux dates surlignées
+  final Map<DateTime, String> eventDetails = {
+    DateTime(2024, 12, 25): "Noël : fête de famille et cadeaux 🎁",
+    DateTime(2024, 1, 1): "Nouvel An : célébrations de la nouvelle année 🎉",
+    DateTime(2024, 7, 14): "Fête nationale : feux d'artifice et festivités 🎇",
+  };
 
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
 
-    // Adding markers from coffeeShops list
+    // Configuration des marqueurs sur la carte
     coffeeShops.forEach((shop) {
       allMarkers.add(
         Marker(
@@ -27,15 +43,12 @@ class _MyHomePageState extends State<MyHomePage> {
               shop.locationCoords.latitude, shop.locationCoords.longitude),
           width: 40.0,
           height: 40.0,
-             child: GestureDetector(
-             onTap: () {
-              // When a marker is clicked, move the map to that marker's position
+          child: GestureDetector(
+            onTap: () {
               _mapController.move(
                 LatLng(shop.locationCoords.latitude, shop.locationCoords.longitude),
                 14.0,
               );
-
-              // Open a small dialog showing the shop details
               _showMarkerDetails(shop);
             },
             child: Icon(
@@ -59,6 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // Construit les éléments de la liste des coffee shops
   _coffeeShopList(int index) {
     return AnimatedBuilder(
       animation: _pageController,
@@ -97,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.0),
-                  color: Colors.white,
+                  color: Colors.blue,
                 ),
                 child: Row(children: [
                   Container(
@@ -124,6 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.bold,
+                          color: Colors.yellow,
                         ),
                       ),
                       Text(
@@ -131,18 +146,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         style: TextStyle(
                           fontSize: 8.0,
                           fontWeight: FontWeight.w600,
+                          color: Colors.yellow,
                         ),
                       ),
-                      // Container(
-                      //   width: 20.0,
-                      //   child: Text(
-                      //     coffeeShops[index].petitedescription,
-                      //     style: TextStyle(
-                      //       fontSize: 11.0,
-                      //       fontWeight: FontWeight.w300,
-                      //     ),
-                      //   ),
-                      // ),
                     ],
                   )
                 ]),
@@ -163,23 +169,29 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Stack(
         children: <Widget>[
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: LatLng(43.300000, 5.400000), // Set the initial center using initialCenter
-              initialZoom: 12.0, // Set the initial zoom level using initialZoom
-            ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                subdomains: ['a', 'b', 'c'],
+          Positioned(
+            top: 0,
+            bottom: 70,
+            left: 0,
+            right: 0,
+            child: FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: LatLng(43.296482, 5.375354),
+                initialZoom: 18.0,
               ),
-              MarkerLayer(markers: allMarkers),
-            ],
+              children: [
+                TileLayer(
+                  urlTemplate:
+                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  subdomains: ['a', 'b', 'c'],
+                ),
+                MarkerLayer(markers: allMarkers),
+              ],
+            ),
           ),
           Positioned(
-            bottom: 20.0,
+            bottom: 40.0,
             child: Container(
               height: 200.0,
               width: MediaQuery.of(context).size.width,
@@ -192,6 +204,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
           ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: BottomNavigationBarCustom(
+              onCalendarPressed: _showCalendarPopup, // Lien vers la fonction popup
+            ),
+          ),
         ],
       ),
     );
@@ -201,10 +219,10 @@ class _MyHomePageState extends State<MyHomePage> {
     _mapController.move(
       LatLng(coffeeShops[_pageController.page!.toInt()].locationCoords.latitude,
           coffeeShops[_pageController.page!.toInt()].locationCoords.longitude),
-      14.0,
+      18,
     );
   }
-   // Function to show the marker details in a dialog
+
   void _showMarkerDetails(Coffee shop) {
     showDialog(
       context: context,
@@ -233,7 +251,135 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     );
   }
+
+  // Fonction pour afficher le calendrier avec des événements
+  void _showCalendarPopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.deepPurple, Colors.blueAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Calendrier des événements",
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TableCalendar(
+  firstDay: DateTime(2023),
+  lastDay: DateTime(2025),
+  focusedDay: DateTime.now(),
+  calendarStyle: CalendarStyle(
+    todayDecoration: BoxDecoration(
+      color: Colors.orange,
+      shape: BoxShape.circle,
+    ),
+    markerDecoration: BoxDecoration(
+      color: Colors.blue, // Couleur des marqueurs
+      shape: BoxShape.circle,
+    ),
+  ),
+  calendarBuilders: CalendarBuilders(
+    markerBuilder: (context, date, events) {
+      if (highlightedDates.any((d) => isSameDay(d, date))) {
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.blue, // Couleur des dates surlignées
+            ),
+          ),
+        );
+      }
+      return null;
+    },
+  ),
+  onDaySelected: (selectedDay, focusedDay) {
+    setState(() {
+      if (highlightedDates.any((d) => isSameDay(d, selectedDay))) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text("Événement"),
+            content: Text("Détails de l'événement pour cette date."),
+            actions: [
+              TextButton(
+                child: Text("Fermer"),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      }
+    });
+  },
+  headerStyle: HeaderStyle(
+    formatButtonVisible: false, // Désactive le bouton FormatButton
+  ),
+),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
+class BottomNavigationBarCustom extends StatelessWidget {
+  final VoidCallback onCalendarPressed;
 
+  const BottomNavigationBarCustom({super.key, required this.onCalendarPressed});
 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+      height: 70,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events, color: Colors.white, size: 42),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => Collection()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_today_outlined, size: 42),
+            onPressed: onCalendarPressed,
+          ),
+          IconButton(
+            icon: const Icon(Icons.map, color: Color(0xFFFFDB3D), size: 42),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => MapPage()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:chat_app/screens/welcome_screen.dart';
 import 'package:chat_app/screens/map_screen.dart';
 import 'package:chat_app/theme/theme.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+ WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -17,8 +20,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: lightMode,
-      home: MyHomePage()
-      // home: const WelcomeScreen(),
+      // home: MyHomePage()
+      home: const WelcomeScreen(),
     );
   }
 }
