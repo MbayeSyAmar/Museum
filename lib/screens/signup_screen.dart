@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:chat_app/screens/signin_screen.dart';
@@ -24,7 +25,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // Firebase Authentication instance
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Function to sign up with email and password
+  // Initialiser les données utilisateur dans Firestore
+  Future<void> _initializeUserInFirestore(User user) async {
+    final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+
+    final userDoc = await userRef.get();
+    if (!userDoc.exists) {
+      // Crée un nouveau document utilisateur s'il n'existe pas encore
+      await userRef.set({
+        'points': 0,
+        'collections': {
+          'Impressionnistes': {
+            '001': {
+              'url': null,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '002': {
+              'url': null,
+              'status': false,
+              'description': 'Un autre indice',
+            },
+          },
+          'Stone & Cool': {
+            '001': {
+              'url': null,
+              'status': false,
+              'description': 'Indice pour cette image',
+            },
+          },
+        },
+      });
+    }
+  }
+
+  // Fonction pour s'inscrire avec email et mot de passe
   Future<void> _signUpWithEmailAndPassword() async {
     if (_formSignupKey.currentState!.validate() && agreePersonalData) {
       try {
@@ -32,7 +67,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        await userCredential.user?.updateDisplayName(_fullNameController.text);
+
+        final User? user = userCredential.user;
+        await user?.updateDisplayName(_fullNameController.text);
+
+        if (user != null) {
+          await _initializeUserInFirestore(user); // Initialiser Firestore
+        }
 
         // Show success pop-up
         await _showSuccessDialog();
@@ -44,12 +85,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // Function to sign up with Google
+  // Fonction pour s'inscrire avec Google
   Future<void> _signUpWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser!.authentication;
+      final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -57,7 +97,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       final userCredential = await _auth.signInWithCredential(credential);
-      _setDefaultDisplayName(userCredential.user?.email);
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        await _initializeUserInFirestore(user); // Initialiser Firestore
+      }
 
       // Show success pop-up
       await _showSuccessDialog();
@@ -66,37 +110,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // Function to sign up with Facebook
-  // Future<void> _signUpWithFacebook() async {
-  //   try {
-  //     final LoginResult result = await FacebookAuth.instance.login();
-  //     if (result.status == LoginStatus.success) {
-  //       final OAuthCredential facebookAuthCredential =
-  //           FacebookAuthProvider.credential(result.accessToken?.token ?? '');
-
-  //       final userCredential =
-  //           await _auth.signInWithCredential(facebookAuthCredential);
-  //       _setDefaultDisplayName(userCredential.user?.email);
-
-  //       // Show success pop-up
-  //       await _showSuccessDialog();
-  //     } else {
-  //       _showErrorSnackBar('Facebook login failed.');
-  //     }
-  //   } on FirebaseAuthException catch (e) {
-  //     _showErrorSnackBar(e.message ?? 'An error occurred.');
-  //   }
-  // }
-
-  // Set default display name if the name is missing
-  void _setDefaultDisplayName(String? email) {
-    if (email != null && email.isNotEmpty) {
-      final name = email.split('@')[0].substring(0, 5);
-      _auth.currentUser?.updateDisplayName(name);
-    }
-  }
-
-  // Show success dialog
+  // Montre une boîte de dialogue en cas de succès
   Future<void> _showSuccessDialog() async {
     await showDialog(
       context: context,
@@ -108,7 +122,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
+                Navigator.pop(context); // Ferme la boîte de dialogue
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -124,7 +138,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Show error snack bar
+  // Montre une barre de message d'erreur
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));

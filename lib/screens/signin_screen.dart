@@ -4,6 +4,7 @@ import 'package:chat_app/screens/signup_screen.dart';
 import 'package:chat_app/widgets/custom_scaffold.dart';
 import 'package:chat_app/screens/page_accueil.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -26,6 +27,40 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  // Méthode pour initialiser l'utilisateur dans Firestore
+  Future<void> _initializeUserInFirestore(User user) async {
+    final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+
+    final userDoc = await userRef.get();
+    if (!userDoc.exists) {
+      // Crée un nouveau document utilisateur s'il n'existe pas encore
+      await userRef.set({
+        'points': 0,
+        'collections': {
+          'Impressionnistes': {
+            '001': {
+              'url': null,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '002': {
+              'url': null,
+              'status': false,
+              'description': 'Un autre indice',
+            },
+          },
+          'Stone & Cool': {
+            '001': {
+              'url': null,
+              'status': false,
+              'description': 'Indice pour cette image',
+            },
+          },
+        },
+      });
+    }
+  }
+
   // Google Sign-In
   Future<void> _signInWithGoogle() async {
     try {
@@ -40,11 +75,16 @@ class _SignInScreenState extends State<SignInScreen> {
         idToken: googleAuth.idToken,
       );
 
-      await _auth.signInWithCredential(credential);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Accueil()),
-      );
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        await _initializeUserInFirestore(user); // Initialiser Firestore
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Accueil()),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Google Sign-In failed: $e')),
@@ -52,17 +92,23 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
+  // Email et mot de passe
   Future<void> _signInWithEmailAndPassword() async {
     if (_formSignInKey.currentState!.validate()) {
       try {
-        await _auth.signInWithEmailAndPassword(
+        final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Accueil()),
-        );
+        final User? user = userCredential.user;
+
+        if (user != null) {
+          await _initializeUserInFirestore(user); // Initialiser Firestore
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Accueil()),
+          );
+        }
       } catch (e) {
         showDialog(
           context: context,

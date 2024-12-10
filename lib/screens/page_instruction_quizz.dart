@@ -86,7 +86,6 @@ class _InstructionQuizzState extends State<InstructionQuizz> {
                   left: 30, // Aligne avec le style précédent
                   right: 20, // Assure un cadre propre
                   child: Container(
-                    // width: double.infinity,
                     height: 100, // Légèrement plus haut que le conteneur blanc
                     decoration: BoxDecoration(
                       color: const Color(0xFF39C9D0), // Bleu clair
@@ -113,7 +112,6 @@ class _InstructionQuizzState extends State<InstructionQuizz> {
                   left: 25,
                   right: 20,
                   child: Container(
-                    // width: 60,
                     height: 120,
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -147,7 +145,9 @@ class _InstructionQuizzState extends State<InstructionQuizz> {
                                   Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => InstructionQuestion(),
+                                      builder: (context) => Scaffold(
+                                        body: InstructionQuestion(),
+                                      ),
                                     ),
                                   );
                                 },

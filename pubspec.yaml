@@ -37,6 +37,7 @@ dependencies:
   # flutter_facebook_auth: ^6.2.0
   # twitter_login: ^4.4.2
   firebase_core: ^3.8.0
+  cloud_firestore: ^5.5.1
   # google_maps_flutter: ^2.9.0
   device_preview: ^1.1.0
   flutter_timer_countdown: ^1.0.5
@@ -74,3 +75,12 @@ flutter:
     - family: Cinzel
       fonts:
         - asset: assets/fonts/Cinzel-VariableFont_wght.ttf
+    - family: Coolvetica
+      fonts:
+        - asset: assets/fonts/coolvetica compressed rg.ttf
+    - family: Geo
+      fonts:
+        - asset: assets/fonts/Geo.otf
+    - family: Arcane Nine
+      fonts:
+        - asset: assets/fonts/Arcane Nine.otf
