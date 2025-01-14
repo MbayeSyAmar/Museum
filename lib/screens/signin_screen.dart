@@ -39,21 +39,102 @@ class _SignInScreenState extends State<SignInScreen> {
         'collections': {
           'Impressionnistes': {
             '001': {
-              'url': null,
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '002': {
-              'url': null,
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
               'status': false,
-              'description': 'Un autre indice',
+              'description': 'Un indice pour cette image',
+            },
+            '003': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '004': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '005': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '006': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '007': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '008': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
             },
           },
           'Stone & Cool': {
-            '001': {
-              'url': null,
+          '001': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
               'status': false,
-              'description': 'Indice pour cette image',
+              'description': 'Un indice pour cette image',
+            },
+            '002': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '003': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '004': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '005': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '006': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '007': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '008': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
             },
           },
         },
@@ -61,12 +142,12 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  // Google Sign-In
+  // Connexion avec Google
   Future<void> _signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
-        return; // User cancelled the sign-in
+        return; // L'utilisateur a annulé la connexion
       }
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
@@ -87,12 +168,12 @@ class _SignInScreenState extends State<SignInScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google Sign-In failed: $e')),
+        SnackBar(content: Text('Connexion Google échouée : $e')),
       );
     }
   }
 
-  // Email et mot de passe
+  // Connexion avec Email et Mot de passe
   Future<void> _signInWithEmailAndPassword() async {
     if (_formSignInKey.currentState!.validate()) {
       try {
@@ -113,9 +194,9 @@ class _SignInScreenState extends State<SignInScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Authentication Error'),
+            title: const Text('Erreur d\'authentification'),
             content: const Text(
-                'The email or password is incorrect. Please try again.'),
+                'L\'email ou le mot de passe est incorrect. Veuillez réessayer.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -157,7 +238,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'Welcome back',
+                        'Bon retour',
                         style: TextStyle(
                           fontSize: 30.0,
                           fontWeight: FontWeight.w900,
@@ -172,13 +253,13 @@ class _SignInScreenState extends State<SignInScreen> {
                         controller: _emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter Email';
+                            return 'Veuillez entrer un email';
                           }
                           return null;
                         },
                         decoration: InputDecoration(
                           label: const Text('Email'),
-                          hintText: 'Enter Email',
+                          hintText: 'Entrez votre email',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                             fontFamily: 'Cinzel',
@@ -206,13 +287,13 @@ class _SignInScreenState extends State<SignInScreen> {
                         obscuringCharacter: '*',
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter Password';
+                            return 'Veuillez entrer un mot de passe';
                           }
                           return null;
                         },
                         decoration: InputDecoration(
-                          label: const Text('Password'),
-                          hintText: 'Enter Password',
+                          label: const Text('Mot de passe'),
+                          hintText: 'Entrez votre mot de passe',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                             fontFamily: 'Cinzel',
@@ -249,7 +330,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                 activeColor: lightColorScheme.primary,
                               ),
                               const Text(
-                                'Remember me',
+                                'Se souvenir de moi',
                                 style: TextStyle(
                                   color: Colors.black45,
                                   fontFamily: 'Cinzel',
@@ -257,16 +338,16 @@ class _SignInScreenState extends State<SignInScreen> {
                               ),
                             ],
                           ),
-                          GestureDetector(
-                            child: Text(
-                              'Forget password?',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: lightColorScheme.primary,
-                                fontFamily: 'Cinzel',
-                              ),
-                            ),
-                          ),
+                          // GestureDetector(
+                          //   child: Text(
+                          //     'Mot de passe oublié ?',
+                          //     style: TextStyle(
+                          //       fontWeight: FontWeight.bold,
+                          //       color: lightColorScheme.primary,
+                          //       fontFamily: 'Cinzel',
+                          //     ),
+                          //   ),
+                          // ),
                         ],
                       ),
                       const SizedBox(
@@ -276,7 +357,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _signInWithEmailAndPassword,
-                          child: const Text('Sign in'),
+                          child: const Text('Connexion'),
                         ),
                       ),
                       const SizedBox(
@@ -297,7 +378,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               horizontal: 10,
                             ),
                             child: Text(
-                              'Sign in with',
+                              'Se connecter avec',
                               style: TextStyle(
                                 color: Colors.black45,
                               ),
@@ -334,7 +415,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
-                            'Don\'t have an account? ',
+                            'Pas encore de compte ? ',
                             style: TextStyle(
                               color: Colors.black45,
                             ),
@@ -349,7 +430,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               );
                             },
                             child: Text(
-                              'Sign up',
+                              'Inscription',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: lightColorScheme.primary,

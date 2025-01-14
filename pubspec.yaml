@@ -84,3 +84,6 @@ flutter:
     - family: Arcane Nine
       fonts:
         - asset: assets/fonts/Arcane Nine.otf
+    - family : Gasoek One
+    - fonts :
+        - asset: assets/fonts/GasoekOne-Regular.ttf

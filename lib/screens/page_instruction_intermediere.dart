@@ -7,15 +7,13 @@ class Instruction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0B2425),
-      ),
-      home: const ArtEscapeHome(),
+    return Scaffold(
+      backgroundColor: const Color(0xFF0B2425), // Correspond au scaffoldBackgroundColor du MaterialApp
+      body: const ArtEscapeHome(),
     );
   }
 }
+
 
 class ArtEscapeHome extends StatefulWidget {
   const ArtEscapeHome({super.key});

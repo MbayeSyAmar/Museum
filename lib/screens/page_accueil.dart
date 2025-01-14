@@ -8,35 +8,31 @@ class Accueil extends StatelessWidget {
   const Accueil({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0B2425),
-      ),
-      home: Scaffold(
-        body: Stack(
-          children: [
-            // Utilisez un SafeArea pour réduire l'espace automatiquement en haut
-            SafeArea(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: 20, // Espace en bas pour le BottomNavigationBar
-                  ),
-                  child: HomeArtGo(),
+ Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0B2425), // Couleur définie pour le fond
+      body: Stack(
+        children: [
+          // Utilisez un SafeArea pour réduire l'espace automatiquement en haut
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  bottom: 20, // Espace en bas pour le BottomNavigationBar
                 ),
+                child: HomeArtGo(),
               ),
             ),
-            const Align(
-              alignment: Alignment.bottomCenter,
-              child: BottomNavigationBarCustom(),
-            ),
-          ],
-        ),
+          ),
+          const Align(
+            alignment: Alignment.bottomCenter,
+            child: BottomNavigationBarCustom(),
+          ),
+        ],
       ),
     );
   }
+
 }
 
 class HomeArtGo extends StatelessWidget {
@@ -52,39 +48,13 @@ class HomeArtGo extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Stack(
-                children: [
-                  const CircleAvatar(
-                    radius: 35, // Taille du cercle
-                    backgroundColor: Color(0xFF0B2425),
-                    child: Icon(
-                      Icons.calendar_today,
-                      size: 40, // Taille ajustée de l'icône
-                      color: Colors.white, // Couleur de l'icône
-                    ),
-                  ),
-                  Positioned(
-                    right: 20,
-                    top: 20,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color:
-                            Color(0xFF42ECF3), // Petite bulle de notification
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
               Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
                   Text(
                     'Niveau 1',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 23,
                       fontFamily: 'Coolvetica',
                       fontWeight: FontWeight.w400,
                       color: Colors.white,
@@ -93,7 +63,7 @@ class HomeArtGo extends StatelessWidget {
                   Text(
                     'Jul13013',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 23,
                       fontFamily: 'Coolvetica',
                       fontWeight: FontWeight.w400,
                       color: Colors.white,
@@ -157,39 +127,8 @@ class HomeArtGo extends StatelessWidget {
           const SizedBox(height: 6),
           // Card 2
           ExhibitionCard(),
-          const SizedBox(height: 25),
+          const SizedBox(height: 35),
           CustomButton(onTap: () => Accueil()),
-          // Button
-          // Center(
-          //   child: GestureDetector(
-          //     onTap: () {
-          //       // Action à définir
-          //     },
-          //     child: Container(
-          //       width: double.infinity,
-          //       height: 60,
-          //       decoration: BoxDecoration(
-          //         gradient: const LinearGradient(
-          //           colors: [Color(0xFFFFDB3D), Color(0xFF39C9D0)],
-          //           begin: Alignment.topLeft,
-          //           end: Alignment.bottomRight,
-          //         ),
-          //         borderRadius: BorderRadius.circular(22),
-          //       ),
-          //       child: const Center(
-          //         child: Text(
-          //           'Reprendre la partie',
-          //           style: TextStyle(
-          //             fontSize: 28,
-          //             fontFamily: 'Coolvetica',
-          //             fontWeight: FontWeight.w400,
-          //             color: Colors.white,
-          //           ),
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
           const SizedBox(height: 40),
         ],
       ),
@@ -209,7 +148,7 @@ class CustomButton extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none, // Permet aux éléments de dépasser les limites
         children: [
-          // Floating blue background
+          // Floating yellow background
           Positioned(
             top: 5,
             left: 5,
@@ -217,7 +156,7 @@ class CustomButton extends StatelessWidget {
               width: MediaQuery.of(context).size.width * 0.8,
               height: 50,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFDB3D), // Bleu clair
+                color: const Color(0xFFFFE382), // Jaune/2
                 shape: BoxShape.rectangle,
                 borderRadius: BorderRadius.only(
                   bottomRight: Radius.elliptical(20, 20),
@@ -231,22 +170,16 @@ class CustomButton extends StatelessWidget {
           // Main Button
           GestureDetector(
             onTap: () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => Instruction()),
               );
             },
-            
             child: Container(
               width: MediaQuery.of(context).size.width * 0.8,
               height: 50,
               decoration: BoxDecoration(
-                // gradient: const LinearGradient(
-                //   colors: [Color(0xFFFFDB3D), Color(0xFF39C9D0)],
-                //   begin: Alignment.topLeft,
-                //   end: Alignment.bottomRight,
-                // ),
-                color: const Color(0xFF39C9D0),
+                color: const Color(0xFFFFDB3D), // Jaune/1
                 shape: BoxShape.rectangle,
                 borderRadius: BorderRadius.only(
                   bottomRight: Radius.elliptical(20, 20),
@@ -269,11 +202,9 @@ class CustomButton extends StatelessWidget {
                     fontSize: 23,
                     fontFamily: 'Coolvetica',
                     fontWeight: FontWeight.w400,
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 0, 0, 0),
                   ),
-                  
                 ),
-                
               ),
             ),
           ),
@@ -298,10 +229,10 @@ class ExhibitionCard extends StatelessWidget {
                 horizontal: 20), // Réduit les marges externes
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
             width: MediaQuery.of(context).size.width -
-                80, // Même largeur que la carte blanche
-            height: 115, // Ajustez la hauteur si nécessaire
+                80, // Même largeur que la carte principale
+            height: 120, // Ajustez la hauteur si nécessaire
             decoration: BoxDecoration(
-              color: const Color(0xFF39C9D0), // Bleu clair
+              color: const Color(0xFFB7D6DD), // Bleu clair
               shape: BoxShape.rectangle,
               borderRadius: BorderRadius.only(
                 bottomRight: Radius.elliptical(25, 25),
@@ -312,7 +243,7 @@ class ExhibitionCard extends StatelessWidget {
             ),
           ),
         ),
-        // White card
+        // Main Card
         Container(
           margin: const EdgeInsets.symmetric(
               horizontal: 20), // Réduit les marges externes
@@ -321,7 +252,7 @@ class ExhibitionCard extends StatelessWidget {
           width: MediaQuery.of(context).size.width *
               0.9, // 90% de la largeur de l'écran
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFF024E50), // Vert foncé
             shape: BoxShape.rectangle,
             borderRadius: BorderRadius.only(
               bottomRight: Radius.elliptical(20, 20),
@@ -343,10 +274,10 @@ class ExhibitionCard extends StatelessWidget {
               const Text(
                 'Exposition temporaire MUCEM',
                 style: TextStyle(
-                  fontSize: 20.78,
+                  fontSize: 21.4,
                   fontFamily: 'Geo',
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFFFFDB3D),
+                  color: Colors.white, // Blanc
                 ),
               ),
               const SizedBox(height: 8),
@@ -358,7 +289,7 @@ class ExhibitionCard extends StatelessWidget {
                     fontSize: 15.49,
                     fontFamily: 'Geo',
                     fontWeight: FontWeight.w500,
-                    color: const Color(0xFF39C9D0),
+                    color: const Color(0xFFFFDB3D), // Jaune/1
                   ),
                 ),
               ),
@@ -378,29 +309,26 @@ class BottomNavigationBarCustom extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
       height: 70,
-      // color: const Color(0xFF0B2425),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.emoji_events, color: Colors.white, size: 42),
+            icon: const Icon(Icons.emoji_events, color: Color(0xFFFFFFFF), size: 42),
             onPressed: () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => Collection()),
               );
             },
           ),
           IconButton(
-            icon: const Icon(Icons.calendar_today_outlined, size: 42),
-            onPressed: () {
-              // Action pour le trophée
-            },
+            icon: const Icon(Icons.calendar_today_outlined, color: Color(0xFFFFDB3D), size: 42),
+            onPressed: () {},
           ),
           IconButton(
-            icon: const Icon(Icons.map, color: Color(0xFFFFDB3D), size: 42),
+            icon: const Icon(Icons.map, color: Color(0xFFFFFFFF), size: 42),
             onPressed: () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => MapPage()),
               );

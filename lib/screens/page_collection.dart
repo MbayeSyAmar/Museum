@@ -183,17 +183,15 @@ class _CollectionState extends State<Collection> {
                                     content: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-  if (item['url'] != null)
-    item['url'].startsWith('http')
-        ? Image.network(item['url']) // URL distante
-        : item['url'].startsWith('assets/')
-            ? Image.asset(item['url']) // Chemin des assets
-            : Image.file(File(item['url'])), // Chemin local absolu
-  SizedBox(height: 10),
-  Text(item['description'] ?? "Aucune description"),
-],
-
-
+                                        if (item['url'] != null)
+                                          item['url'].startsWith('http')
+                                              ? Image.network(item['url']) // URL distante
+                                              : item['url'].startsWith('assets/')
+                                                  ? Image.asset(item['url']) // Chemin des assets
+                                                  : Image.file(File(item['url'])), // Chemin local
+                                        SizedBox(height: 10),
+                                        Text(item['description'] ?? "Aucune description"),
+                                      ],
                                     ),
                                     actions: [
                                       TextButton(
@@ -282,7 +280,7 @@ class GridSection extends StatelessWidget {
         itemBuilder: (context, index) {
           String key = keys[index];
           Map<String, dynamic> item = elements[key];
-          bool unlocked = int.parse(key) <= points;
+          bool unlocked = item['status'] == true; // Basé sur le statut
 
           return GestureDetector(
             onTap: unlocked ? () => onItemTap(item) : null,
@@ -292,14 +290,13 @@ class GridSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 image: unlocked && item['url'] != null
                     ? DecorationImage(
-  image: item['url'].startsWith('http')
-      ? NetworkImage(item['url']) // URL distante
-      : item['url'].startsWith('assets/')
-          ? AssetImage(item['url']) // Chemin des assets
-          : FileImage(File(item['url'])), // Chemin local absolu
-  fit: BoxFit.cover,
-)
-
+                        image: item['url'].startsWith('http')
+                            ? NetworkImage(item['url']) // URL distante
+                            : item['url'].startsWith('assets/')
+                                ? AssetImage(item['url']) // Chemin des assets
+                                : FileImage(File(item['url'])), // Chemin local
+                        fit: BoxFit.cover,
+                      )
                     : null,
               ),
               child: Center(

@@ -16,14 +16,12 @@ class _MapPageState extends State<MapPage> {
   late PageController _pageController;
   int prevPage = 0;
 
-  // Liste des dates à mettre en surbrillance
   final List<DateTime> highlightedDates = [
-    DateTime(2024, 12, 25), // Noël
-    DateTime(2024, 1, 1),   // Nouvel An
-    DateTime(2024, 7, 14),  // Fête nationale française
+    DateTime(2024, 12, 25),
+    DateTime(2024, 1, 1),
+    DateTime(2024, 7, 14),
   ];
 
-  // Détails des événements liés aux dates surlignées
   final Map<DateTime, String> eventDetails = {
     DateTime(2024, 12, 25): "Noël : fête de famille et cadeaux 🎁",
     DateTime(2024, 1, 1): "Nouvel An : célébrations de la nouvelle année 🎉",
@@ -35,7 +33,6 @@ class _MapPageState extends State<MapPage> {
     super.initState();
     _mapController = MapController();
 
-    // Configuration des marqueurs sur la carte
     coffeeShops.forEach((shop) {
       allMarkers.add(
         Marker(
@@ -72,7 +69,6 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  // Construit les éléments de la liste des coffee shops
   _coffeeShopList(int index) {
     return AnimatedBuilder(
       animation: _pageController,
@@ -164,7 +160,11 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Maps'),
+        backgroundColor: Colors.black,
+        title: Text(
+          'Maps',
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
       ),
       body: Stack(
@@ -207,7 +207,7 @@ class _MapPageState extends State<MapPage> {
           Align(
             alignment: Alignment.bottomCenter,
             child: BottomNavigationBarCustom(
-              onCalendarPressed: _showCalendarPopup, // Lien vers la fonction popup
+              onCalendarPressed: _showCalendarPopup,
             ),
           ),
         ],
@@ -252,7 +252,6 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  // Fonction pour afficher le calendrier avec des événements
   void _showCalendarPopup() {
     showDialog(
       context: context,
@@ -280,60 +279,60 @@ class _MapPageState extends State<MapPage> {
                   ),
                 ),
                 TableCalendar(
-  firstDay: DateTime(2023),
-  lastDay: DateTime(2025),
-  focusedDay: DateTime.now(),
-  calendarStyle: CalendarStyle(
-    todayDecoration: BoxDecoration(
-      color: Colors.orange,
-      shape: BoxShape.circle,
-    ),
-    markerDecoration: BoxDecoration(
-      color: Colors.blue, // Couleur des marqueurs
-      shape: BoxShape.circle,
-    ),
-  ),
-  calendarBuilders: CalendarBuilders(
-    markerBuilder: (context, date, events) {
-      if (highlightedDates.any((d) => isSameDay(d, date))) {
-        return Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.blue, // Couleur des dates surlignées
-            ),
-          ),
-        );
-      }
-      return null;
-    },
-  ),
-  onDaySelected: (selectedDay, focusedDay) {
-    setState(() {
-      if (highlightedDates.any((d) => isSameDay(d, selectedDay))) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Text("Événement"),
-            content: Text("Détails de l'événement pour cette date."),
-            actions: [
-              TextButton(
-                child: Text("Fermer"),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      }
-    });
-  },
-  headerStyle: HeaderStyle(
-    formatButtonVisible: false, // Désactive le bouton FormatButton
-  ),
-),
+                  firstDay: DateTime(2023),
+                  lastDay: DateTime(2025),
+                  focusedDay: DateTime.now(),
+                  calendarStyle: CalendarStyle(
+                    todayDecoration: BoxDecoration(
+                      color: Colors.orange,
+                      shape: BoxShape.circle,
+                    ),
+                    markerDecoration: BoxDecoration(
+                      color: Colors.blue,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  calendarBuilders: CalendarBuilders(
+                    markerBuilder: (context, date, events) {
+                      if (highlightedDates.any((d) => isSameDay(d, date))) {
+                        return Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        );
+                      }
+                      return null;
+                    },
+                  ),
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      if (highlightedDates.any((d) => isSameDay(d, selectedDay))) {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: Text("Événement"),
+                            content: Text("Détails de l'événement pour cette date."),
+                            actions: [
+                              TextButton(
+                                child: Text("Fermer"),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    });
+                  },
+                  headerStyle: HeaderStyle(
+                    formatButtonVisible: false,
+                  ),
+                ),
               ],
             ),
           ),
@@ -351,6 +350,7 @@ class BottomNavigationBarCustom extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      color: Colors.black,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
       height: 70,
       child: Row(
@@ -366,7 +366,7 @@ class BottomNavigationBarCustom extends StatelessWidget {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.calendar_today_outlined, size: 42),
+            icon: const Icon(Icons.calendar_today_outlined, color: Colors.white, size: 42),
             onPressed: onCalendarPressed,
           ),
           IconButton(

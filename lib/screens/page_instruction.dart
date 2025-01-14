@@ -8,12 +8,9 @@ class Instruction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0B2425),
-      ),
-      home: const ArtEscapeHome(),
+    return Scaffold(
+      backgroundColor: const Color(0xFF0B2425), // Appliquer la couleur de fond sombre directement
+      body: const ArtEscapeHome(),
     );
   }
 }
@@ -31,6 +28,7 @@ class _ArtEscapeHomeState extends State<ArtEscapeHome> {
       'Au secours, je suis bloqué entre ces murs Au secours, je suis teste teste teste teste ';
   int _currentIndex = 0;
   final AudioPlayer _audioPlayer = AudioPlayer(); // Instance du lecteur audio
+  Timer? _timer; // Pour arrêter le Timer si nécessaire
 
   @override
   void initState() {
@@ -41,6 +39,7 @@ class _ArtEscapeHomeState extends State<ArtEscapeHome> {
   @override
   void dispose() {
     _audioPlayer.dispose(); // Libérer les ressources audio
+    _timer?.cancel(); // Arrêter le Timer
     super.dispose();
   }
 
@@ -49,7 +48,7 @@ class _ArtEscapeHomeState extends State<ArtEscapeHome> {
     await _audioPlayer.setReleaseMode(ReleaseMode.loop);
     await _audioPlayer.play(AssetSource('sounds/typing.mp3')); // Chemin vers le son d'écriture
 
-    Timer.periodic(const Duration(milliseconds: 100), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_currentIndex < _fullText.length) {
         setState(() {
           _displayedText += _fullText[_currentIndex];
@@ -62,9 +61,20 @@ class _ArtEscapeHomeState extends State<ArtEscapeHome> {
     });
   }
 
+  void _skipTextAnimation() {
+    // Afficher tout le texte et arrêter le son
+    setState(() {
+      _displayedText = _fullText;
+      _currentIndex = _fullText.length;
+    });
+    _audioPlayer.stop(); // Arrêter le son
+    _timer?.cancel(); // Arrêter le Timer
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0B2425), // Fond sombre
       body: Stack(
         children: [
           Positioned(
@@ -131,29 +141,32 @@ class _ArtEscapeHomeState extends State<ArtEscapeHome> {
                 bottom: 32,
                 left: 20,
                 right: 60,
-                child: Container(
-                  width: double.infinity,
-                  height: 110,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      bottomRight: Radius.elliptical(20, 20),
-                      topLeft: Radius.elliptical(20, 20),
-                      topRight: Radius.elliptical(4, 4),
-                      bottomLeft: Radius.elliptical(4, 4),
+                child: GestureDetector(
+                  onTap: _skipTextAnimation, // Gère le clic sur la carte blanche
+                  child: Container(
+                    width: double.infinity,
+                    height: 110,
+                    decoration: BoxDecoration(
+                      color: Colors.white, // Fond blanc de ce container spécifique
+                      borderRadius: BorderRadius.only(
+                        bottomRight: Radius.elliptical(20, 20),
+                        topLeft: Radius.elliptical(20, 20),
+                        topRight: Radius.elliptical(4, 4),
+                        bottomLeft: Radius.elliptical(4, 4),
+                      ),
                     ),
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  child: Text(
-                    _displayedText,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.blue,
-                      fontFamily: 'Coolvetica',
+                    padding: const EdgeInsets.all(10),
+                    child: Text(
+                      _displayedText,
+                      style: const TextStyle(
+                        fontSize: 25,
+                        color: Colors.blue,
+                        fontFamily: 'Coolvetica',
+                      ),
+                      softWrap: true,
+                      maxLines: null,
+                      overflow: TextOverflow.visible,
                     ),
-                    softWrap: true,
-                    maxLines: null,
-                    overflow: TextOverflow.visible,
                   ),
                 ),
               ),

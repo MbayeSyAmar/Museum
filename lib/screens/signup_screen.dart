@@ -34,24 +34,105 @@ class _SignUpScreenState extends State<SignUpScreen> {
       // Crée un nouveau document utilisateur s'il n'existe pas encore
       await userRef.set({
         'points': 0,
-        'collections': {
+           'collections': {
           'Impressionnistes': {
             '001': {
-              'url': null,
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '002': {
-              'url': null,
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
               'status': false,
-              'description': 'Un autre indice',
+              'description': 'Un indice pour cette image',
+            },
+            '003': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '004': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '005': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '006': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '007': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '008': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
             },
           },
           'Stone & Cool': {
-            '001': {
-              'url': null,
+          '001': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
               'status': false,
-              'description': 'Indice pour cette image',
+              'description': 'Un indice pour cette image',
+            },
+            '002': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '003': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '004': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '005': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '006': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '007': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
+            },
+            '008': {
+              'url': "assets/images/background_hint.png",
+              'points' : 0,
+              'status': false,
+              'description': 'Un indice pour cette image',
             },
           },
         },
@@ -75,13 +156,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
           await _initializeUserInFirestore(user); // Initialiser Firestore
         }
 
-        // Show success pop-up
+        // Affiche une boîte de dialogue de succès
         await _showSuccessDialog();
       } on FirebaseAuthException catch (e) {
-        _showErrorSnackBar(e.message ?? 'An error occurred.');
+        _showErrorSnackBar(e.message ?? 'Une erreur s\u2019est produite.');
       }
     } else if (!agreePersonalData) {
-      _showErrorSnackBar('Please agree to the processing of personal data');
+      _showErrorSnackBar('Veuillez accepter le traitement des données personnelles.');
     }
   }
 
@@ -103,10 +184,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         await _initializeUserInFirestore(user); // Initialiser Firestore
       }
 
-      // Show success pop-up
+      // Affiche une boîte de dialogue de succès
       await _showSuccessDialog();
     } on FirebaseAuthException catch (e) {
-      _showErrorSnackBar(e.message ?? 'An error occurred.');
+      _showErrorSnackBar(e.message ?? 'Une erreur s\u2019est produite.');
     }
   }
 
@@ -116,14 +197,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Success'),
+          title: const Text('Succès'),
           content: const Text(
-              'Registration successful. Click OK to access the application.'),
+              'Inscription réussie. Cliquez sur OK pour accéder à l\u2019application.'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // Ferme la boîte de dialogue
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const SignInScreen(),
@@ -171,7 +252,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'Get Started',
+                        'Commencer',
                         style: TextStyle(
                           fontSize: 30.0,
                           fontWeight: FontWeight.w900,
@@ -184,13 +265,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         controller: _fullNameController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter Full name';
+                            return 'Veuillez entrer un nom complet';
                           }
                           return null;
                         },
                         decoration: InputDecoration(
-                          label: const Text('Full Name'),
-                          hintText: 'Enter Full Name',
+                          label: const Text('Nom complet'),
+                          hintText: 'Entrez votre nom complet',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                             fontFamily: 'Cinzel',
@@ -206,13 +287,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         controller: _emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter Email';
+                            return 'Veuillez entrer un email';
                           }
                           return null;
                         },
                         decoration: InputDecoration(
                           label: const Text('Email'),
-                          hintText: 'Enter Email',
+                          hintText: 'Entrez votre email',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                             fontFamily: 'Cinzel',
@@ -230,13 +311,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         obscuringCharacter: '*',
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter Password';
+                            return 'Veuillez entrer un mot de passe';
                           }
                           return null;
                         },
                         decoration: InputDecoration(
-                          label: const Text('Password'),
-                          hintText: 'Enter Password',
+                          label: const Text('Mot de passe'),
+                          hintText: 'Entrez votre mot de passe',
                           hintStyle: const TextStyle(
                             color: Colors.black26,
                             fontFamily: 'Cinzel',
@@ -259,15 +340,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             },
                             activeColor: lightColorScheme.primary,
                           ),
-                          const Text(
-                            'Processing of ',
-                            style: TextStyle(
-                              color: Colors.black45,
-                              fontFamily: 'Cinzel',
-                            ),
-                          ),
+                          
                           Text(
-                            'Personal data',
+                            'données personnelles',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: lightColorScheme.primary,
@@ -281,7 +356,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _signUpWithEmailAndPassword,
-                          child: const Text('Sign up'),
+                          child: const Text('S\u2019inscrire'),
                         ),
                       ),
                       const SizedBox(height: 30.0),
@@ -297,7 +372,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 10),
                             child: Text(
-                              'Sign up with',
+                              'S\u2019inscrire avec',
                               style: TextStyle(color: Colors.black45),
                             ),
                           ),
@@ -314,15 +389,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           GestureDetector(
-                            // onTap: _signUpWithFacebook,
+                            // Ajoutez la logique Facebook
                             child: Logo(Logos.facebook_f),
                           ),
-                          Logo(Logos.twitter), // Add Twitter logic similarly
+                          Logo(Logos.twitter), // Ajoutez la logique Twitter
                           GestureDetector(
                             onTap: _signUpWithGoogle,
                             child: Logo(Logos.google),
                           ),
-                          Logo(Logos.apple), // Add Apple logic similarly
+                          Logo(Logos.apple), // Ajoutez la logique Apple
                         ],
                       ),
                       const SizedBox(height: 25.0),
@@ -330,7 +405,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
-                            'Already have an account? ',
+                            'Vous avez déjà un compte ? ',
                             style: TextStyle(color: Colors.black45),
                           ),
                           GestureDetector(
@@ -343,7 +418,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               );
                             },
                             child: Text(
-                              'Sign in',
+                              'Se connecter',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: lightColorScheme.primary,
