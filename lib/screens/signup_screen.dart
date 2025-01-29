@@ -33,104 +33,105 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (!userDoc.exists) {
       // Crée un nouveau document utilisateur s'il n'existe pas encore
       await userRef.set({
+        'fullName': _fullNameController.text.trim(), // Stockage du nom complet
         'points': 0,
-           'collections': {
+        'collections': {
           'Impressionnistes': {
             '001': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '002': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '003': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '004': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '005': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '006': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '007': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '008': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
           },
           'Stone & Cool': {
-          '001': {
+            '001': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '002': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '003': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '004': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '005': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '006': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '007': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },
             '008': {
               'url': "assets/images/background_hint.png",
-              'points' : 0,
+              'points': 0,
               'status': false,
               'description': 'Un indice pour cette image',
             },

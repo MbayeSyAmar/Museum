@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
-
+import 'package:chat_app/screens/music_manager.dart';
 import 'package:chat_app/screens/page_instruction_question.dart';
 
 class InstructionQuizz extends StatefulWidget {
@@ -59,9 +59,19 @@ class _InstructionQuizzState extends State<InstructionQuizz>
       setState(() {
         isCorrectAnswer = true;
       });
-      _controller.forward(); // Lancer l'animation
 
-      await Future.delayed(const Duration(seconds: 1)); // Attendre la fin de l'animation
+      await MusicManager.correctMusic(); // Joue la musique de bonne réponse
+      await MusicManager.setVolume(1); // Diminue le volume à 50%
+      _controller.forward(); // Lancer l'animation
+      
+      await Future.delayed(const Duration(seconds: 2));
+
+      await MusicManager.stopMusic();
+      await MusicManager.setVolume(0.1); // Diminue le volume à 50%
+      await MusicManager.playMusic();
+
+      
+      // await Future.delayed(const Duration(seconds: 1)); // Attendre la fin de l'animation
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -70,7 +80,17 @@ class _InstructionQuizzState extends State<InstructionQuizz>
       );
     } else {
       // Réponse incorrecte
+      await MusicManager.errorMusic(); // Joue la musique de mauvaise réponse
+   
+await MusicManager.setVolume(1); // Diminue le volume à 50%
       HapticFeedback.vibrate();
+      
+      await Future.delayed(const Duration(seconds: 2));
+
+      await MusicManager.stopMusic();
+      await MusicManager.setVolume(0.1); // Diminue le volume à 50%
+      await MusicManager.playMusic();
+
       await Future.delayed(const Duration(seconds: 1));
       setState(() {
         selectedAnswerIndex = -1; // Réinitialiser la sélection

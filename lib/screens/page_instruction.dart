@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart'; // Ajouter le package audioplayers
 import 'package:chat_app/screens/page_instruction_quizz.dart';
+import 'package:chat_app/screens/music_manager.dart';
 import 'dart:async';
 
 class Instruction extends StatelessWidget {
@@ -33,9 +34,13 @@ class _ArtEscapeHomeState extends State<ArtEscapeHome> {
   @override
   void initState() {
     super.initState();
+    _startMusic();
     _startTextAnimation();
   }
-
+Future<void> _startMusic() async {
+    await MusicManager.playMusic();
+    await MusicManager.setVolume(0.1); // Diminue le volume à 50%
+  }
   @override
   void dispose() {
     _audioPlayer.dispose(); // Libérer les ressources audio

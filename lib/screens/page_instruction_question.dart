@@ -1,8 +1,11 @@
-import 'package:flutter/material.dart'; 
+import 'package:flutter/material.dart';
 import 'package:chat_app/screens/oeuvre_retrouvee.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:chat_app/screens/music_manager.dart';
 import 'dart:async';
+
+import 'package:flutter/services.dart';
 
 class InstructionQuestion extends StatefulWidget {
   const InstructionQuestion({super.key});
@@ -59,6 +62,7 @@ class _InstructionQuestionState extends State<InstructionQuestion>
 
   @override
   void dispose() {
+    MusicManager.stopMusic(); // Arrêter la musique à la sortie
     _vibrationController.dispose();
     _plus10Controller.dispose();
     _textController.dispose();
@@ -76,7 +80,27 @@ class _InstructionQuestionState extends State<InstructionQuestion>
     final answer = _textController.text.trim().toLowerCase();
 
     if (answer == "babacar") {
-      // Correct answer logic
+      // Bonne réponse
+      await MusicManager.correctMusic(); // Jouer la musique de bonne réponse
+      await MusicManager.setVolume(1);
+           // Start the +10 animation and show it
+              setState(() {
+                _showPlus10 = true;
+              });
+
+              _plus10Controller.forward().then((_) {
+                if (mounted) {
+                  setState(() {
+                    _showPlus10 = false; // Hide the animation after it finishes
+                  });
+                }
+              });
+       // Augmenter le volume pour l'effet
+      await Future.delayed(const Duration(seconds: 2)); // Attendre l'effet sonore
+      await MusicManager.stopMusic();
+      await MusicManager.setVolume(0.1); // Diminue le volume à 50%
+      await MusicManager.playMusic();
+
       try {
         final userDoc = await userRef.get();
         if (userDoc.exists) {
@@ -91,65 +115,44 @@ class _InstructionQuestionState extends State<InstructionQuestion>
                 'collections.Impressionnistes.001.status': true,
               });
 
-              // Start the +10 animation and show it
-              setState(() {
-                _showPlus10 = true;
-              });
-
-              _plus10Controller.forward().then((_) {
-                if (mounted) {
-                  setState(() {
-                    _showPlus10 = false; // Hide the animation after it finishes
-                  });
-                }
-              });
+         
 
               // Navigate to the Oeuvreretrouvee screen
-              await Future.delayed(const Duration(seconds: 2)); 
+              // await Future.delayed(const Duration(seconds: 2));
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const Oeuvreretrouvee(),
                 ),
               );
-            } else {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("'001' data not found!")),
-                );
-              }
             }
-          } else {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("'Impressionnistes' map not found!")),
-              );
-            }
-          }
-        } else {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("User document not found!")),
-            );
           }
         }
       } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Error: ${e.toString()}")),
-          );
-        }
+        print("Error: $e");
       }
     } else {
-      setState(() {
+      // Mauvaise réponse
+      // HapticFeedback.vibrate();
+      await MusicManager.errorMusic(); // Jouer la musique de mauvaise réponse
+      await MusicManager.setVolume(1); 
+      HapticFeedback.vibrate();
+      // Augmenter le volume pour l'effet
+        _vibrationController.forward().then((_) => _vibrationController.reverse());
+        setState(() {
         _borderColor = Colors.red;
         _hintText = 'Réponse incorrecte !';
         _hintColor = Colors.red;
       });
+      await Future.delayed(const Duration(seconds: 2)); // Attendre l'effet sonore
+      await MusicManager.stopMusic();
+      await MusicManager.setVolume(0.1); // Diminue le volume à 50%
+      await MusicManager.playMusic();
+      
 
-      _vibrationController.forward().then((_) => _vibrationController.reverse());
+    
 
-      Timer(const Duration(seconds: 3), () {
+      Timer(const Duration(seconds: 2), () {
         setState(() {
           _borderColor = Colors.white;
           _hintText = 'Qui est l auteur de ca ? ...';
@@ -183,21 +186,6 @@ class _InstructionQuestionState extends State<InstructionQuestion>
               ),
             ),
           ),
-  // Icône de sortie en haut à gauche
-          Positioned(
-            top: 35,
-            left: 20,
-            child: GestureDetector(
-              onTap: () {
-                // Logique pour quitter
-              },
-              child: const Icon(
-                Icons.directions_run,
-                color: Colors.white,
-                size: 36,
-              ),
-            ),
-          ),
           // Blue background for the floating text input
           Positioned(
             bottom: 12,
@@ -223,7 +211,6 @@ class _InstructionQuestionState extends State<InstructionQuestion>
               ),
             ),
           ),
-
           // White text input field
           Positioned(
             bottom: 15,
@@ -258,7 +245,6 @@ class _InstructionQuestionState extends State<InstructionQuestion>
               ),
             ),
           ),
-
           // Animation de l'icône d'applaudissements
           if (_showPlus10)
             Positioned(
@@ -267,22 +253,21 @@ class _InstructionQuestionState extends State<InstructionQuestion>
               child: SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(0, 1), // Part du bas (hors écran)
-                  end: Offset.zero,          // Arrive à sa position finale
+                  end: Offset.zero, // Arrive à sa position finale
                 ).animate(CurvedAnimation(
                   parent: _plus10Controller,
-                  curve: Curves.easeOut,     // Animation fluide vers le haut
+                  curve: Curves.easeOut, // Animation fluide vers le haut
                 )),
                 child: FadeTransition(
                   opacity: _plus10FadeAnimation, // Animation de fondu
                   child: const Icon(
-                    Icons.celebration,          // Icône d'applaudissements
-                    color: Colors.greenAccent,  // Couleur vivante
-                    size: 200,                   // Taille ajustée
+                    Icons.celebration, // Icône d'applaudissements
+                    color: Colors.greenAccent, // Couleur vivante
+                    size: 200, // Taille ajustée
                   ),
                 ),
               ),
             ),
-
           // Submit arrow icon
           Positioned(
             bottom: 50,
