@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+
 
 
 class Collection extends StatefulWidget {
@@ -8,69 +12,7 @@ class Collection extends StatefulWidget {
 }
 
 class _CollectionState extends State<Collection> {
-  List<Map<String, dynamic>> sections = [
-    {
-      "title": "Impressionnistes",
-      "elements": ["001", "002", "003", "image1", "image2", "001", "004", "005"]
-    },
-    {
-      "title": "Stone & Cool",
-      "elements": ["001", "image3", "006", "007", "image4", "001", "008", "009"]
-    },
-    {
-      "title": "Take me to church",
-      "elements": [
-        "image5",
-        "001",
-        "image6",
-        "010",
-        "001",
-        "011",
-        "image7",
-        "012"
-      ]
-    },
-    {
-      "title": "Abstract Arts",
-      "elements": [
-        "001",
-        "013",
-        "image8",
-        "image9",
-        "001",
-        "014",
-        "015",
-        "image10"
-      ]
-    },
-    {
-      "title": "Modern Times",
-      "elements": [
-        "001",
-        "image11",
-        "016",
-        "017",
-        "image12",
-        "001",
-        "018",
-        "019"
-      ]
-    },
-    {
-      "title": "Nature Vibes",
-      "elements": [
-        "image13",
-        "001",
-        "image14",
-        "020",
-        "021",
-        "001",
-        "image15",
-        "022"
-      ]
-    }
-  ];
-
+  List<Map<String, dynamic>> sections = [];
   List<Map<String, dynamic>> filteredSections = [];
   bool isSearching = false;
   String searchQuery = "";
@@ -78,9 +20,45 @@ class _CollectionState extends State<Collection> {
   @override
   void initState() {
     super.initState();
-    filteredSections =
-        sections; // Par défaut, toutes les sections sont visibles
+    fetchSections();
   }
+
+  // Fonction pour récupérer les sections depuis Firestore
+
+
+void fetchSections() async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  User? user = FirebaseAuth.instance.currentUser; // Récupère l'utilisateur connecté
+
+  if (user == null) {
+    print("Aucun utilisateur connecté");
+    return;
+  }
+
+  String userId = user.uid; // Récupère l'ID de l'utilisateur connecté
+
+  QuerySnapshot snapshot = await firestore
+      .collection('users')
+      .doc(userId) // Utilisation dynamique de l'ID utilisateur
+      .get()
+      .then((doc) => doc.reference.collection('collections').get());
+
+  List<Map<String, dynamic>> fetchedSections = [];
+
+  for (var doc in snapshot.docs) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    fetchedSections.add({
+      "title": doc.id, // Nom de la section
+      "elements": data.keys.toList(), // Récupère les clés des éléments
+    });
+  }
+
+  setState(() {
+    sections = fetchedSections;
+    filteredSections = sections; // Mise à jour des sections affichées
+  });
+}
+
 
   void updateSearch(String query) {
     setState(() {
@@ -123,12 +101,14 @@ class _CollectionState extends State<Collection> {
                   if (!isSearching)
                     Expanded(
                       child: Text(
-                        "Mes collections",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        "Mes collection",
+                         style: const TextStyle(
+              fontFamily: 'Arcane Nine',
+              fontSize: 64,
+              fontWeight: FontWeight.w400,
+              height: 1.0,
+              color: Colors.white,
+            ),
                       ),
                     ),
                   if (isSearching)
@@ -165,86 +145,64 @@ class _CollectionState extends State<Collection> {
             // Catégories
             Container(
               height: 80,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: filteredSections.map((section) {
-                  return GestureDetector(
-                    onTap: () => moveSectionToTop(section),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.museum, color: Colors.white, size: 50),
-                          SizedBox(height: 5),
-                          Text(
-                            section['title'],
-                            style: TextStyle(color: Colors.white, fontSize: 12),
+              child: filteredSections.isEmpty
+                  ? Center(child: CircularProgressIndicator())
+                  : ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: filteredSections.map((section) {
+                        return GestureDetector(
+                          onTap: () => moveSectionToTop(section),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.museum, color: Colors.white, size: 50),
+                                SizedBox(height: 5),
+                                Text(
+                                  section['title'],
+                                  style: TextStyle(color: Colors.white, fontSize: 12),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
+                        );
+                      }).toList(),
                     ),
-                  );
-                }).toList(),
-              ),
             ),
             SizedBox(height: 10),
             // Sections filtrées
             Expanded(
-              child: ListView(
-                children: filteredSections.map((section) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SectionTitle(title: section['title']),
-                      GridSection(
-                        elements: section['elements'],
-                        onItemTap: (item) {
-                          if (item.startsWith('image')) {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                backgroundColor: Colors.white,
-                                title: Text("Détail de l'image"),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Image.network(
-                                      "https://via.placeholder.com/150?text=$item",
-                                    ),
-                                    SizedBox(height: 10),
-                                    Text("Très jolie"),
-                                  ],
-                                ),
-                                actions: [
-                                  TextButton(
-                                    child: Text("Fermer"),
-                                    onPressed: () => Navigator.pop(context),
+              child: filteredSections.isEmpty
+                  ? Center(child: CircularProgressIndicator())
+                  : ListView(
+                      children: filteredSections.map((section) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SectionTitle(title: section['title']),
+                            GridSection(
+                              elements: section['elements'],
+                              onItemTap: (item) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    backgroundColor: Colors.white,
+                                    content: Text("Élément sélectionné : $item"),
+                                    actions: [
+                                      TextButton(
+                                        child: Text("Fermer"),
+                                        onPressed: () => Navigator.pop(context),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            );
-                          } else {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                backgroundColor: Colors.white,
-                                content: Text("Musée pas encore collecté."),
-                                actions: [
-                                  TextButton(
-                                    child: Text("Fermer"),
-                                    onPressed: () => Navigator.pop(context),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  );
-                }).toList(),
-              ),
+                                );
+                              },
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
             ),
           ],
         ),
@@ -259,6 +217,8 @@ class _CollectionState extends State<Collection> {
     });
   }
 }
+
+
 
 class SectionTitle extends StatelessWidget {
   final String title;
@@ -297,6 +257,8 @@ class SectionTitle extends StatelessWidget {
   }
 }
 
+
+
 class GridSection extends StatelessWidget {
   final List<String> elements;
   final Function(String) onItemTap;
@@ -321,29 +283,18 @@ class GridSection extends StatelessWidget {
             onTap: () => onItemTap(item),
             child: Container(
               decoration: BoxDecoration(
-                color: item.startsWith('image')
-                    ? Colors.transparent
-                    : Color(0xFFB7D6DD),
+                color: Color(0xFFB7D6DD),
                 borderRadius: BorderRadius.circular(10),
-                image: item.startsWith('image')
-                    ? DecorationImage(
-                        image: NetworkImage(
-                            "https://via.placeholder.com/150?text=$item"),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
               ),
               child: Center(
-                child: item.startsWith('image')
-                    ? null
-                    : Text(
-                        item,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                child: Text(
+                  item,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           );
