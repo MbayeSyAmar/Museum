@@ -398,7 +398,7 @@ class _CollectionState extends State<Collection> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            item['titre'] ?? "Titre inconnu",
+                            item['title'] ?? "Titre inconnu",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 20,

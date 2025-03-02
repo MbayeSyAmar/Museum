@@ -388,9 +388,12 @@
 import 'package:flutter/material.dart';
 import 'package:chat_app/screens/page_collection.dart';
 import 'package:chat_app/screens/page_instruction.dart';
+import 'package:chat_app/screens/ParcoursNavigator.dart';
  import 'package:chat_app/screens/map_screen.dart';
   import 'package:chat_app/screens/profile.dart';
    import 'package:chat_app/screens/expo.dart';
+ import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -410,6 +413,127 @@ void _onItemTapped(int index) {
     _selectedIndex = index;
   });
 }
+void _showGameOptionsPopup() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      TextEditingController _codeController = TextEditingController();
+
+      return AlertDialog(
+        title: Text("Choisissez une option"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Ferme le pop-up et affiche le champ pour entrer le code
+                _showAccessKeyPopup();
+              },
+              child: Text("Rejoindre une partie"),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                // Redirige vers la partie sauvegardée
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Collection()));
+              },
+              child: Text("Reprendre ma partie"),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void _showAccessKeyPopup() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      TextEditingController _accessKeyController = TextEditingController();
+
+      return AlertDialog(
+        title: Text("Entrer le code d'accès"),
+        content: TextField(
+          controller: _accessKeyController,
+          decoration: InputDecoration(hintText: "Code d'accès"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Annuler"),
+          ),
+          TextButton(
+            onPressed: () async {
+              String accessKey = _accessKeyController.text.trim();
+              if (accessKey.isNotEmpty) {
+                await _joinGame(accessKey);
+                Navigator.pop(context);
+              }
+            },
+            child: Text("Valider"),
+          ),
+        ],
+      );
+    },
+  );
+}
+Future<void> _joinGame(String accessKey) async {
+  try {
+    print("📌 Début de la récupération du parcours avec accessKey: $accessKey");
+
+    final QuerySnapshot<Map<String, dynamic>> courseQuery = await FirebaseFirestore.instance
+        .collection("courses")
+        .where("accessKey", isEqualTo: accessKey)
+        .get();
+
+    if (courseQuery.docs.isNotEmpty) {
+      final DocumentSnapshot<Map<String, dynamic>> courseDoc = courseQuery.docs.first;
+      final Map<String, dynamic> courseData = courseDoc.data()!;
+
+      String sectionName = courseData["section"] ?? "section_inconnue";
+      String courseId = courseDoc.id;
+
+      print("✅ Section récupérée depuis Firestore : section = $sectionName, courseId = $courseId");
+
+      final QuerySnapshot<Map<String, dynamic>> sectionCourses = await FirebaseFirestore.instance
+          .collection("courses")
+          .where("section", isEqualTo: sectionName)
+          .get();
+
+      if (sectionCourses.docs.isEmpty) {
+        print("❌ Aucun cours trouvé pour la section $sectionName !");
+        return;
+      }
+
+      Map<String, dynamic> courseCollection = {};
+      for (var doc in sectionCourses.docs) {
+        courseCollection[doc.id] = {
+          'url': doc.data()["imageUrl"] ?? "",
+          'points': 0,
+          'status': false,
+          'description': doc.data()["description"] ?? "Description non disponible",
+          'createdAt': doc.data()["createdAt"] ?? "",
+          'musee': doc.data()["musee"] ?? "",
+          'title': doc.data()["title"] ?? "",
+          'accessKey': doc.data()["accessKey"] ?? "",
+        };
+      }
+
+      String userId = FirebaseAuth.instance.currentUser!.uid;
+      await FirebaseFirestore.instance.collection("users").doc(userId).update({
+        "collections.$sectionName": courseCollection,
+      });
+
+      print("🎉 Partie rejointe avec succès ! Données enregistrées sous collections.$sectionName");
+    } else {
+      print("❌ Code d'accès invalide !");
+    }
+  } catch (e) {
+    print("🚨 Erreur lors de la récupération du parcours : $e");
+  }
+}
+
 
 // Ajoute cette variable dans `_MainScreenState`
 Key _collectionKey = UniqueKey();
@@ -570,10 +694,11 @@ Widget build(BuildContext context) {
                 ),
                 child: TextButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Instruction()),
-                    );
+                    _showGameOptionsPopup();
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(builder: (context) => Instruction()),
+                    // );
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -606,6 +731,172 @@ Widget build(BuildContext context) {
     ),
   );
 }
+void _showGameOptionsPopup() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      TextEditingController _codeController = TextEditingController();
+
+      return AlertDialog(
+        title: Text("Choisissez une option"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Ferme le pop-up et affiche le champ pour entrer le code
+                _showAccessKeyPopup();
+              },
+              child: Text("Rejoindre une partie"),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                // Redirige vers la partie sauvegardée
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Collection()));
+              },
+              child: Text("Reprendre ma partie"),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void _showAccessKeyPopup() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      TextEditingController _accessKeyController = TextEditingController();
+
+      return AlertDialog(
+        title: Text("Entrer le code d'accès"),
+        content: TextField(
+          controller: _accessKeyController,
+          decoration: InputDecoration(hintText: "Code d'accès"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Annuler"),
+          ),
+          TextButton(
+            onPressed: () async {
+              String accessKey = _accessKeyController.text.trim();
+              if (accessKey.isNotEmpty) {
+                Map<String, dynamic>? gameData = await _joinGame(accessKey);
+                Navigator.pop(context);
+
+                if (gameData != null) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ParcoursNavigator(
+                        courseId: gameData["courseId"],
+                        userId: gameData["userId"],
+                        section: gameData["section"],
+                      ),
+                    ),
+                  );
+                } else {
+                  // Afficher une alerte en cas de mauvais code
+                  _showErrorDialog();
+                }
+              }
+            },
+            child: Text("Valider"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+// Fonction pour afficher un message d'erreur
+void _showErrorDialog() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Erreur"),
+        content: Text("Le code d'accès est invalide. Vérifiez et réessayez."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("OK"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+Future<Map<String, dynamic>?> _joinGame(String accessKey) async {
+  try {
+    print("📌 Début de la récupération du parcours avec accessKey: $accessKey");
+
+    final QuerySnapshot<Map<String, dynamic>> courseQuery = await FirebaseFirestore.instance
+        .collection("courses")
+        .where("accessKey", isEqualTo: accessKey)
+        .get();
+
+    if (courseQuery.docs.isNotEmpty) {
+      final DocumentSnapshot<Map<String, dynamic>> courseDoc = courseQuery.docs.first;
+      final Map<String, dynamic> courseData = courseDoc.data()!;
+
+      String courseId = courseDoc.id;
+      String sectionName = courseData["section"] ?? "section_inconnue";  // ✅ Utilisation du vrai nom de la section
+      String userId = FirebaseAuth.instance.currentUser!.uid;
+
+      print("📌 Section récupérée : section = $sectionName, courseId = $courseId");
+
+      final QuerySnapshot<Map<String, dynamic>> sectionCourses = await FirebaseFirestore.instance
+          .collection("courses")
+          .where("section", isEqualTo: sectionName)
+          .get();
+
+      if (sectionCourses.docs.isEmpty) {
+        print("❌ Aucun cours trouvé pour la section $sectionName !");
+        return null;
+      }
+
+      Map<String, dynamic> courseCollection = {};
+      for (var doc in sectionCourses.docs) {
+        courseCollection[doc.id] = {
+          'url': doc.data()["imageUrl"] ?? "",
+          'points': 0,
+          'status': false,
+          'description': doc.data()["description"] ?? "Description non disponible",
+          'createdAt': doc.data()["createdAt"]?.toDate().toString() ?? "",
+          'musee': doc.data()["musee"] ?? "",
+          'title': doc.data()["title"] ?? "",
+          'accessKey': doc.data()["accessKey"] ?? "",
+        };
+      }
+
+      await FirebaseFirestore.instance.collection("users").doc(userId).update({
+        "collections.$sectionName": courseCollection,
+      });
+
+      print("🎉 Partie rejointe avec succès ! Données enregistrées sous collections.$sectionName");
+
+      // ✅ Retourner les données pour que `gameData` puisse les utiliser
+      return {
+        "courseId": courseId,
+        "userId": userId,
+        "section": sectionName,
+      };
+    } else {
+      print("❌ Code d'accès invalide !");
+      return null;
+    }
+  } catch (e) {
+    print("🚨 Erreur lors de la récupération du parcours : $e");
+    return null;
+  }
+}
+
 
   // Fonction pour créer une carte d'exposition cliquable
   Widget buildExpositionCard(String title, VoidCallback onTap) {

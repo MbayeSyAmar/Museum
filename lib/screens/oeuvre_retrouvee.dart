@@ -234,22 +234,45 @@
 // }
 
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:chat_app/screens/page_collection.dart';
 import 'package:chat_app/screens/page_accueil.dart';
- import 'package:chat_app/screens/map_screen.dart';
-  import 'package:chat_app/screens/profile.dart';
-  
-class Oeuvreretrouvee extends StatelessWidget {
-  const Oeuvreretrouvee({super.key});
+import 'package:chat_app/screens/map_screen.dart';
+import 'package:chat_app/screens/profile.dart';
+
+class OeuvreRetrouvee extends StatelessWidget {
+  final String title;
+  final String section;
+  final String description;
+  final String musee;
+  final String createdAt;
+  final String imageUrl;
+  final String nextAccessKey;
+
+  const OeuvreRetrouvee({
+    super.key,
+    required this.title,
+    required this.section,
+    required this.description,
+    required this.musee,
+    required this.createdAt,
+    required this.imageUrl,
+    required this.nextAccessKey,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: const Color(0xFF0B2425), // Fond sombre
-      body: const JocondePage(),
+      body: JocondePage(
+        title: title,
+        section: section,
+        description: description,
+        musee: musee,
+        createdAt: createdAt,
+        imageUrl: imageUrl,
+        nextAccessKey: nextAccessKey,
+      ),
       bottomNavigationBar: Container(
         color: const Color(0xFF00292A),
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -289,7 +312,8 @@ class Oeuvreretrouvee extends StatelessWidget {
       ),
     );
   }
-    Widget navBarItem(IconData icon, String label, bool isSelected) {
+
+  Widget navBarItem(IconData icon, String label, bool isSelected) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -306,46 +330,27 @@ class Oeuvreretrouvee extends StatelessWidget {
       ],
     );
   }
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    bool isSelected = false,
-  }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 46,
-          height: 40,
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF627474) : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            icon,
-            color: Colors.white,
-            size: 36,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFFFDFDFD),
-            fontSize: 14,
-            fontFamily: 'Coolvetica',
-          ),
-        ),
-      ],
-    );
-  }
-
 }
 
-
-
 class JocondePage extends StatefulWidget {
-  const JocondePage({super.key});
+  final String title;
+  final String section;
+  final String description;
+  final String musee;
+  final String createdAt;
+  final String imageUrl;
+  final String nextAccessKey;
+
+  const JocondePage({
+    super.key,
+    required this.title,
+    required this.section,
+    required this.description,
+    required this.musee,
+    required this.createdAt,
+    required this.imageUrl,
+    required this.nextAccessKey,
+  });
 
   @override
   _JocondePageState createState() => _JocondePageState();
@@ -353,8 +358,6 @@ class JocondePage extends StatefulWidget {
 
 class _JocondePageState extends State<JocondePage> {
   bool isFavorite = false;
-  int currentIndex = 0;
-
 
   @override
   Widget build(BuildContext context) {
@@ -374,19 +377,19 @@ class _JocondePageState extends State<JocondePage> {
               ),
               child: Column(
                 children: [
-                  const Center(
+                  Center(
                     child: Text(
-                      'La Joconde',
-                      style: TextStyle(
+                      widget.title, // 📌 Titre du parcours
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 40,
                         fontFamily: 'Arcane Nine',
                       ),
                     ),
                   ),
-                  const Text(
-                    '1503 - 1506',
-                    style: TextStyle(
+                  Text(
+                    widget.createdAt, // 📅 Date de création
+                    style: const TextStyle(
                       color: Color(0xFFFFDB3D),
                       fontSize: 24,
                       fontFamily: 'Geo',
@@ -401,17 +404,17 @@ class _JocondePageState extends State<JocondePage> {
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
-                            'Léonard de Vinci',
-                            style: TextStyle(
+                            widget.musee, // 🏛️ Musée
+                            style: const TextStyle(
                               color: Color(0xFFFFDB3D),
                               fontSize: 28,
                               fontFamily: 'Geo',
                             ),
                           ),
-                          SizedBox(height: 2),
-                          Text(
+                          const SizedBox(height: 2),
+                          const Text(
                             'Tout voir >',
                             style: TextStyle(
                               color: Colors.white,
@@ -419,27 +422,27 @@ class _JocondePageState extends State<JocondePage> {
                               fontFamily: 'Geo',
                             ),
                           ),
-                          SizedBox(height: 5),
+                          const SizedBox(height: 5),
                           Text(
-                            'Huile sur Toile',
-                            style: TextStyle(
+                            'AK2:${widget.nextAccessKey}', // 🔑 Clé d'accès du prochain parcours
+                            style: const TextStyle(
                               color: Color(0xFFFFDB3D),
                               fontSize: 24,
                               fontFamily: 'Geo',
                             ),
                           ),
                           Text(
-                            'Impressionnistas',
-                            style: TextStyle(
+                            widget.section, // 🎨 Section
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 24,
                               fontFamily: 'Coolvetica',
                             ),
                           ),
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
                           Text(
-                            'Peinte au début des années 1500, par De Vinci sur la commande de Francesco del Giocondo, peu de monde avait vraiment...',
-                            style: TextStyle(
+                            widget.description, // 📝 Description du parcours
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
                               fontFamily: 'Geo',
@@ -464,15 +467,15 @@ class _JocondePageState extends State<JocondePage> {
             height: 220,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              image: const DecorationImage(
-                image: AssetImage('assets/images/image.png'),
+              image: DecorationImage(
+                image: NetworkImage(widget.imageUrl), // 📌 Image du parcours
                 fit: BoxFit.cover,
               ),
             ),
           ),
         ),
         Positioned(
-          top: 200 + MediaQuery.of(context).size.height * 0.6 -20,
+          top: 200 + MediaQuery.of(context).size.height * 0.6 - 20,
           left: 35,
           right: 35,
           child: SizedBox(
@@ -522,7 +525,6 @@ class _JocondePageState extends State<JocondePage> {
           ),
         ),
       ],
-      
     );
   }
 }

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:chat_app/screens/music_manager.dart';
-import 'package:chat_app/screens/page_instruction_question.dart';
 
 class InstructionQuizz extends StatefulWidget {
-  const InstructionQuizz({super.key});
+  final Map<String, dynamic> quiz;
+  final VoidCallback onNext;
+
+  const InstructionQuizz({super.key, required this.quiz, required this.onNext});
 
   @override
   _InstructionQuizzState createState() => _InstructionQuizzState();
@@ -13,11 +15,10 @@ class InstructionQuizz extends StatefulWidget {
 
 class _InstructionQuizzState extends State<InstructionQuizz>
     with SingleTickerProviderStateMixin {
-  int selectedAnswerIndex = -1; // Store selected answer index
+  int selectedAnswerIndex = -1; // Stocke l'index de la réponse sélectionnée
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
-
   bool isCorrectAnswer = false;
 
   @override
@@ -44,8 +45,7 @@ class _InstructionQuizzState extends State<InstructionQuizz>
 
   @override
   void dispose() {
-    // Dispose du contrôleur d'animation pour libérer les ressources
-    _controller.dispose();
+    _controller.dispose(); // Libérer les ressources d'animation
     super.dispose();
   }
 
@@ -54,44 +54,33 @@ class _InstructionQuizzState extends State<InstructionQuizz>
       selectedAnswerIndex = index;
     });
 
-    if (index == 1) {
-      // Réponse correcte
+    if (index == widget.quiz['correctOption']) {
+      // ✅ Réponse correcte
       setState(() {
         isCorrectAnswer = true;
       });
 
-      await MusicManager.correctMusic(); // Joue la musique de bonne réponse
-      await MusicManager.setVolume(1); // Diminue le volume à 50%
+      await MusicManager.correctMusic();
+      await MusicManager.setVolume(1);
       _controller.forward(); // Lancer l'animation
       
       await Future.delayed(const Duration(seconds: 2));
-
       await MusicManager.stopMusic();
-      await MusicManager.setVolume(0.1); // Diminue le volume à 50%
+      await MusicManager.setVolume(0.1);
       await MusicManager.playMusic();
 
-      
-      // await Future.delayed(const Duration(seconds: 1)); // Attendre la fin de l'animation
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const InstructionQuestion(),
-        ),
-      );
+      widget.onNext(); // Passer à l'étape suivante
     } else {
-      // Réponse incorrecte
-      await MusicManager.errorMusic(); // Joue la musique de mauvaise réponse
-   
-await MusicManager.setVolume(1); // Diminue le volume à 50%
+      // ❌ Réponse incorrecte
+      await MusicManager.errorMusic();
+      await MusicManager.setVolume(1);
       HapticFeedback.vibrate();
       
       await Future.delayed(const Duration(seconds: 2));
-
       await MusicManager.stopMusic();
-      await MusicManager.setVolume(0.1); // Diminue le volume à 50%
+      await MusicManager.setVolume(0.1);
       await MusicManager.playMusic();
 
-      await Future.delayed(const Duration(seconds: 1));
       setState(() {
         selectedAnswerIndex = -1; // Réinitialiser la sélection
         isCorrectAnswer = false;
@@ -101,16 +90,11 @@ await MusicManager.setVolume(1); // Diminue le volume à 50%
 
   @override
   Widget build(BuildContext context) {
-    // Empêcher l'accès à _controller si non initialisé
-    if (!mounted || _controller == null) {
-      return const SizedBox(); // Retourner un widget vide si _controller n'est pas prêt
-    }
-
     return Scaffold(
       backgroundColor: const Color(0xFF0B2425), // Fond sombre
       body: Stack(
         children: [
-          // Cadre jaune avec l'image
+          // Cadre jaune avec l'image du quiz (si disponible)
           Positioned(
             top: 30,
             left: 20,
@@ -121,10 +105,15 @@ await MusicManager.setVolume(1); // Diminue le volume à 50%
                 border: Border.all(color: const Color(0xFFFFDB3D), width: 2),
               ),
               child: ClipRect(
-                child: Image.asset(
-                  'assets/images/background_hint.png', // Remplace par ton image
-                  fit: BoxFit.cover,
-                ),
+                child: widget.quiz['imageUrl'] != null && widget.quiz['imageUrl'].isNotEmpty
+                    ? Image.network(
+                        widget.quiz['imageUrl'],
+                        fit: BoxFit.cover,
+                      )
+                    : Image.asset(
+                        'assets/images/background_hint.png',
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
           ),
@@ -211,83 +200,58 @@ await MusicManager.setVolume(1); // Diminue le volume à 50%
                     ),
                   ),
                   padding: const EdgeInsets.all(10),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Quel est le nom de cette œuvre ?',
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  child: Column(
+                    children: [
+                      Text(
+                        widget.quiz['text'], // 🔥 Texte du quiz dynamique
+                        style: const TextStyle(
+                          color: Colors.blue,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 8),
-                        Column(
-                          children: List.generate(3, (index) {
-                            return GestureDetector(
-                              onTap: () => onAnswerSelected(index),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                padding: const EdgeInsets.symmetric(vertical: 6),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: selectedAnswerIndex == index && index != 1
-                                        ? Colors.red
-                                        : Colors.transparent,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.arrow_forward_ios,
-                                      color: Colors.blue,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Réponse ${index + 1}',
-                                      style: const TextStyle(
-                                        color: Colors.blue,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
+                      ),
+                      const SizedBox(height: 8),
+                      Column(
+                        children: List.generate(widget.quiz['options'].length, (index) {
+                          return GestureDetector(
+                            onTap: () => onAnswerSelected(index),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: selectedAnswerIndex == index && index != widget.quiz['correctOption']
+                                      ? Colors.red
+                                      : Colors.transparent,
                                 ),
                               ),
-                            );
-                          }),
-                        ),
-                      ],
-                    ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.arrow_forward_ios,
+                                    color: Colors.blue,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    widget.quiz['options'][index], // 🔥 Options dynamiques
+                                    style: const TextStyle(
+                                      color: Colors.blue,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
-
-          // Animation de l'icône "vrai"
-          if (isCorrectAnswer)
-            Center(
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _opacityAnimation.value,
-                    child: Transform.scale(
-                      scale: _scaleAnimation.value,
-                      child: child,
-                    ),
-                  );
-                },
-                child: const Icon(
-                  Icons.check_circle,
-                  size: 200,
-                  color: Colors.greenAccent,
-                ),
-              ),
-            ),
         ],
       ),
     );

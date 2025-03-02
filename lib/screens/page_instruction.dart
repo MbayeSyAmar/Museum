@@ -1,57 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart'; // Ajouter le package audioplayers
-import 'package:chat_app/screens/page_instruction_quizz.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:chat_app/screens/music_manager.dart';
 import 'dart:async';
 
-class Instruction extends StatelessWidget {
-  const Instruction({super.key});
+class Instruction extends StatefulWidget {
+  final Map<String, dynamic> instruction;
+  final VoidCallback onNext;
+
+  Instruction({required this.instruction, required this.onNext});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0B2425), // Appliquer la couleur de fond sombre directement
-      body: const ArtEscapeHome(),
-    );
-  }
+  _InstructionState createState() => _InstructionState();
 }
 
-class ArtEscapeHome extends StatefulWidget {
-  const ArtEscapeHome({super.key});
-
-  @override
-  _ArtEscapeHomeState createState() => _ArtEscapeHomeState();
-}
-
-class _ArtEscapeHomeState extends State<ArtEscapeHome> {
+class _InstructionState extends State<Instruction> {
   String _displayedText = '';
-  final String _fullText =
-      'Au secours, je suis bloqué entre ces murs Au secours, je suis teste teste teste teste ';
+  late String _fullText;
   int _currentIndex = 0;
-  final AudioPlayer _audioPlayer = AudioPlayer(); // Instance du lecteur audio
-  Timer? _timer; // Pour arrêter le Timer si nécessaire
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
+    _fullText = widget.instruction["text"] ?? "Aucune instruction disponible."; // Récupérer le texte de l'instruction
     _startMusic();
     _startTextAnimation();
   }
-Future<void> _startMusic() async {
+
+  Future<void> _startMusic() async {
     await MusicManager.playMusic();
-    await MusicManager.setVolume(0.1); // Diminue le volume à 50%
+    await MusicManager.setVolume(0.1);
   }
+
   @override
   void dispose() {
-    _audioPlayer.dispose(); // Libérer les ressources audio
-    _timer?.cancel(); // Arrêter le Timer
+    _audioPlayer.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
   void _startTextAnimation() async {
-    // Jouer le son en boucle
     await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-    await _audioPlayer.play(AssetSource('sounds/typing.mp3')); // Chemin vers le son d'écriture
+    await _audioPlayer.play(AssetSource('sounds/typing.mp3'));
 
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_currentIndex < _fullText.length) {
@@ -61,25 +52,24 @@ Future<void> _startMusic() async {
         });
       } else {
         timer.cancel();
-        _audioPlayer.stop(); // Arrêter le son une fois l'animation terminée
+        _audioPlayer.stop();
       }
     });
   }
 
   void _skipTextAnimation() {
-    // Afficher tout le texte et arrêter le son
     setState(() {
       _displayedText = _fullText;
       _currentIndex = _fullText.length;
     });
-    _audioPlayer.stop(); // Arrêter le son
-    _timer?.cancel(); // Arrêter le Timer
+    _audioPlayer.stop();
+    _timer?.cancel();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B2425), // Fond sombre
+      backgroundColor: const Color(0xFF0B2425),
       body: Stack(
         children: [
           Positioned(
@@ -92,10 +82,12 @@ Future<void> _startMusic() async {
                 border: Border.all(color: const Color(0xFFFFDB3D), width: 2),
               ),
               child: ClipRect(
-                child: Image.asset(
-                  'assets/images/background_hint.png',
-                  fit: BoxFit.cover,
-                ),
+                child: widget.instruction["imageUrl"] != null
+                    ? Image.network(
+                        widget.instruction["imageUrl"],
+                        fit: BoxFit.cover,
+                      )
+                    : Image.asset('assets/images/background_hint.png', fit: BoxFit.cover),
               ),
             ),
           ),
@@ -104,7 +96,7 @@ Future<void> _startMusic() async {
             left: 20,
             child: GestureDetector(
               onTap: () {
-                // Action pour quitter l'écran
+                Navigator.pop(context);
               },
               child: const Icon(
                 Icons.directions_run,
@@ -115,17 +107,16 @@ Future<void> _startMusic() async {
           ),
           Stack(
             children: [
-              // Floating Blue Background
               Positioned(
-                bottom: 30, // Décalage pour qu'il apparaisse derrière le blanc
-                left: 25, // Ajuste l'alignement
-                right: 55, // Décalage pour maintenir le style
+                bottom: 30,
+                left: 25,
+                right: 55,
                 child: Container(
-                  width: double.infinity, // Largeur maximale
-                  height: 110, // Légèrement plus grand que le blanc
+                  width: double.infinity,
+                  height: 110,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF39C9D0), // Bleu clair
-                    borderRadius: BorderRadius.only(
+                    color: const Color(0xFF39C9D0),
+                    borderRadius: const BorderRadius.only(
                       bottomRight: Radius.elliptical(20, 20),
                       topLeft: Radius.elliptical(20, 20),
                       topRight: Radius.elliptical(4, 4),
@@ -141,18 +132,17 @@ Future<void> _startMusic() async {
                   ),
                 ),
               ),
-              // Main White Container
               Positioned(
                 bottom: 32,
                 left: 20,
                 right: 60,
                 child: GestureDetector(
-                  onTap: _skipTextAnimation, // Gère le clic sur la carte blanche
+                  onTap: _skipTextAnimation,
                   child: Container(
                     width: double.infinity,
                     height: 110,
-                    decoration: BoxDecoration(
-                      color: Colors.white, // Fond blanc de ce container spécifique
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
                       borderRadius: BorderRadius.only(
                         bottomRight: Radius.elliptical(20, 20),
                         topLeft: Radius.elliptical(20, 20),
@@ -181,12 +171,7 @@ Future<void> _startMusic() async {
             bottom: 80,
             right: 20,
             child: GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => InstructionQuizz()),
-                );
-              },
+              onTap: widget.onNext, // 🔥 Passer à l'étape suivante
               child: const Icon(
                 Icons.arrow_forward,
                 color: Colors.lightBlueAccent,

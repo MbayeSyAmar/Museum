@@ -1,26 +1,36 @@
 {
   "project_info": {
-    "project_number": "13831365526",
-    "project_id": "gerart-6cdc1",
-    "storage_bucket": "gerart-6cdc1.firebasestorage.app"
+    "project_number": "121884427335",
+    "project_id": "gerart-back",
+    "storage_bucket": "gerart-back.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:13831365526:android:4df94d788f43d6782d33b7",
+        "mobilesdk_app_id": "1:121884427335:android:778cb4b2fcae61dc665d62",
         "android_client_info": {
           "package_name": "com.example.chat_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "121884427335-hka5i7e1q66kud52kqgfv4ocpug75hso.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyAXfW5OT3nFTW-x2RpcWCjbi_M8i9snHR0"
+          "current_key": "AIzaSyCmshp52e-813Uij8uiUvSQk9ClXrGtDVs"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "121884427335-hka5i7e1q66kud52kqgfv4ocpug75hso.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

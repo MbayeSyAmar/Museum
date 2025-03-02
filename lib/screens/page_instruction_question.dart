@@ -4,40 +4,42 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/screens/music_manager.dart';
 import 'dart:async';
-
 import 'package:flutter/services.dart';
 
 class InstructionQuestion extends StatefulWidget {
-  const InstructionQuestion({super.key});
+  final Map<String, dynamic> question;
+  final String userId;
+  final VoidCallback onNext;
+
+  InstructionQuestion({required this.question, required this.onNext, required this.userId,});
 
   @override
   _InstructionQuestionState createState() => _InstructionQuestionState();
 }
 
-class _InstructionQuestionState extends State<InstructionQuestion>
-    with TickerProviderStateMixin {
+class _InstructionQuestionState extends State<InstructionQuestion> with TickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
-
-  // Firestore and FirebaseAuth instances
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Animation controllers
   late AnimationController _vibrationController;
   late Animation<Offset> _vibrationAnimation;
   late AnimationController _plus10Controller;
   late Animation<double> _plus10FadeAnimation;
 
   Color _borderColor = Colors.white;
-  String _hintText = 'Qui est l auteur de ca ? ...';
+  late String _hintText;
   Color _hintColor = Colors.blue;
-
   bool _showPlus10 = false;
+  String? sectionName;
+String? courseId;
 
   @override
   void initState() {
     super.initState();
-
+    _hintText = widget.question["text"] ?? "Question introuvable...";
+ // Récupérer les informations du parcours
+  _loadCourseInfo();
     _vibrationController = AnimationController(
       duration: const Duration(milliseconds: 100),
       vsync: this,
@@ -48,7 +50,6 @@ class _InstructionQuestionState extends State<InstructionQuestion>
       end: const Offset(0.05, 0),
     ).chain(CurveTween(curve: Curves.elasticIn)).animate(_vibrationController);
 
-    // Animation controller for +10 effect
     _plus10Controller = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -61,106 +62,151 @@ class _InstructionQuestionState extends State<InstructionQuestion>
   }
 
   @override
-  void dispose() {
-    MusicManager.stopMusic(); // Arrêter la musique à la sortie
-    _vibrationController.dispose();
-    _plus10Controller.dispose();
-    _textController.dispose();
-    super.dispose();
+@override
+void dispose() {
+  if (mounted) {
+    MusicManager.stopMusic();
   }
+  _vibrationController.dispose();
+  _plus10Controller.dispose();
+  _textController.dispose();
+  super.dispose();
+}
 
-  // Function to handle the submission of text
-  Future<void> _handleSubmit() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) return;
+Future<void> _loadCourseInfo() async {
+  print("📌 Début de _loadCourseInfo()...");
 
-    final userId = currentUser.uid;
-    final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+  try {
+    courseId = widget.question["courseId"] ?? "courseId_non_trouvé";
+print("📌 Vérification dans _loadCourseInfo() - courseId : $courseId");
 
-    final answer = _textController.text.trim().toLowerCase();
+    if (courseId == null) {
+      print("❌ ERREUR : `courseId` est introuvable dans la question !");
+      return;
+    }
 
-    if (answer == "babacar") {
-      // Bonne réponse
-      await MusicManager.correctMusic(); // Jouer la musique de bonne réponse
-      await MusicManager.setVolume(1);
-           // Start the +10 animation and show it
-              setState(() {
-                _showPlus10 = true;
-              });
+    print("📌 Recherche du document courses/$courseId dans Firestore...");
+    final courseDoc = await FirebaseFirestore.instance.collection("courses").doc(courseId).get();
 
-              _plus10Controller.forward().then((_) {
-                if (mounted) {
-                  setState(() {
-                    _showPlus10 = false; // Hide the animation after it finishes
-                  });
-                }
-              });
-       // Augmenter le volume pour l'effet
-      await Future.delayed(const Duration(seconds: 2)); // Attendre l'effet sonore
-      await MusicManager.stopMusic();
-      await MusicManager.setVolume(0.1); // Diminue le volume à 50%
-      await MusicManager.playMusic();
+    if (courseDoc.exists) {
+      final courseData = courseDoc.data();
+      sectionName = courseData?["section"];
 
-      try {
-        final userDoc = await userRef.get();
-        if (userDoc.exists) {
-          final impressionnistesData = userDoc.data()?['collections']?['Impressionnistes'];
-
-          if (impressionnistesData != null) {
-            final impressionnistes001 = impressionnistesData['001'];
-
-            if (impressionnistes001 != null) {
-              await userRef.update({
-                'collections.Impressionnistes.001.points': 1,
-                'collections.Impressionnistes.001.status': true,
-              });
-
-         
-
-              // Navigate to the Oeuvreretrouvee screen
-              // await Future.delayed(const Duration(seconds: 2));
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const Oeuvreretrouvee(),
-                ),
-              );
-            }
-          }
-        }
-      } catch (e) {
-        print("Error: $e");
-      }
+      print("✅ Données du parcours récupérées : courseId = $courseId, section = $sectionName");
     } else {
-      // Mauvaise réponse
-      // HapticFeedback.vibrate();
-      await MusicManager.errorMusic(); // Jouer la musique de mauvaise réponse
-      await MusicManager.setVolume(1); 
-      HapticFeedback.vibrate();
-      // Augmenter le volume pour l'effet
-        _vibrationController.forward().then((_) => _vibrationController.reverse());
+      print("❌ ERREUR : Aucun document trouvé pour courseId = $courseId");
+    }
+  } catch (e) {
+    print("❌ ERREUR lors de la récupération des infos du parcours : $e");
+  }
+}
+
+Future<void> _handleSubmit() async {
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser == null) return;
+
+  final userId = currentUser.uid;
+  final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+
+  final answer = _textController.text.trim().toLowerCase();
+  final correctAnswer = widget.question["correctAnswer"]?.toLowerCase() ?? "";
+
+  if (answer == correctAnswer) {
+    await MusicManager.correctMusic();
+    await MusicManager.setVolume(1);
+
+    if (!mounted) return;
+    setState(() {
+      _showPlus10 = true;
+    });
+
+    _plus10Controller.forward().then((_) {
+      if (mounted) {
         setState(() {
+          _showPlus10 = false;
+        });
+      }
+    });
+
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    await MusicManager.stopMusic();
+    await MusicManager.setVolume(0.1);
+    await MusicManager.playMusic();
+
+    try {
+      final userDoc = await userRef.get();
+      if (!userDoc.exists) {
+        print("❌ L'utilisateur n'existe pas dans Firestore !");
+        return;
+      }
+
+      if (sectionName == null || courseId == null) {
+        print("❌ ERREUR : `sectionName` ou `courseId` est toujours null !");
+        return;
+      }
+
+      final collectionsData = userDoc.data()?['collections'];
+
+      print("📌 Données utilisées pour la mise à jour : section = $sectionName, courseId = $courseId");
+
+      if (collectionsData != null && collectionsData.containsKey(sectionName)) {
+        final sectionData = collectionsData[sectionName];
+
+        if (sectionData != null && sectionData.containsKey(courseId)) {
+          print("✅ Mise à jour des points du parcours...");
+
+          await userRef.update({
+            "collections.$sectionName.$courseId.points": FieldValue.increment(1),
+            "collections.$sectionName.$courseId.status": true,
+          });
+
+          print("✅ Réponse correcte ! Passage à l'étape suivante...");
+
+          if (mounted) {
+            print("📌 Navigation en cours... fermeture de l'écran actuel.");
+            Navigator.pop(context); // 🔥 Fermer l'écran avant d'appeler onNext()
+          }
+
+          Future.delayed(Duration(milliseconds: 300), () {
+            if (mounted) {
+              print("📌 widget.onNext() est exécuté !");
+              widget.onNext();
+            } else {
+              print("❌ ERREUR: widget.onNext() ne peut pas être exécuté car le widget n'est plus monté !");
+            }
+          });
+        } else {
+          print("❌ Aucune donnée trouvée pour le cours actuel ($courseId) dans la section ($sectionName).");
+        }
+      } else {
+        print("❌ Section $sectionName non trouvée dans les collections.");
+      }
+    } catch (e) {
+      print("❌ Erreur lors de la mise à jour de l'utilisateur : $e");
+    }
+  } else {
+    await MusicManager.errorMusic();
+    await MusicManager.setVolume(1);
+    HapticFeedback.vibrate();
+
+    if (mounted) {
+      setState(() {
         _borderColor = Colors.red;
         _hintText = 'Réponse incorrecte !';
         _hintColor = Colors.red;
       });
-      await Future.delayed(const Duration(seconds: 2)); // Attendre l'effet sonore
-      await MusicManager.stopMusic();
-      await MusicManager.setVolume(0.1); // Diminue le volume à 50%
-      await MusicManager.playMusic();
-      
-
-    
-
-      Timer(const Duration(seconds: 2), () {
-        setState(() {
-          _borderColor = Colors.white;
-          _hintText = 'Qui est l auteur de ca ? ...';
-          _hintColor = Colors.blue;
-        });
-      });
     }
+
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    await MusicManager.stopMusic();
+    await MusicManager.setVolume(0.1);
+    await MusicManager.playMusic();
   }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +214,6 @@ class _InstructionQuestionState extends State<InstructionQuestion>
       backgroundColor: const Color(0xFF0B2425),
       body: Stack(
         children: [
-          // Background image within the frame
           Positioned(
             top: 30,
             left: 20,
@@ -179,14 +224,15 @@ class _InstructionQuestionState extends State<InstructionQuestion>
                 border: Border.all(color: const Color(0xFFFFDB3D), width: 2),
               ),
               child: ClipRect(
-                child: Image.asset(
-                  'assets/images/background_hint.png',
-                  fit: BoxFit.cover,
-                ),
+                child: widget.question["imageUrl"] != null
+                    ? Image.network(
+                        widget.question["imageUrl"],
+                        fit: BoxFit.cover,
+                      )
+                    : Image.asset('assets/images/background_hint.png', fit: BoxFit.cover),
               ),
             ),
           ),
-          // Blue background for the floating text input
           Positioned(
             bottom: 12,
             left: 30,
@@ -211,7 +257,6 @@ class _InstructionQuestionState extends State<InstructionQuestion>
               ),
             ),
           ),
-          // White text input field
           Positioned(
             bottom: 15,
             left: 25,
@@ -245,30 +290,6 @@ class _InstructionQuestionState extends State<InstructionQuestion>
               ),
             ),
           ),
-          // Animation de l'icône d'applaudissements
-          if (_showPlus10)
-            Positioned(
-              bottom: 300,
-              right: 20,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 1), // Part du bas (hors écran)
-                  end: Offset.zero, // Arrive à sa position finale
-                ).animate(CurvedAnimation(
-                  parent: _plus10Controller,
-                  curve: Curves.easeOut, // Animation fluide vers le haut
-                )),
-                child: FadeTransition(
-                  opacity: _plus10FadeAnimation, // Animation de fondu
-                  child: const Icon(
-                    Icons.celebration, // Icône d'applaudissements
-                    color: Colors.greenAccent, // Couleur vivante
-                    size: 200, // Taille ajustée
-                  ),
-                ),
-              ),
-            ),
-          // Submit arrow icon
           Positioned(
             bottom: 50,
             right: 20,
