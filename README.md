@@ -1,16 +1,37 @@
-# chat_app
+# Museum App
 
-A new Flutter project.
+## Description
+Museum is a cross-platform mobile application that allows users to explore and learn about different artworks and exhibits in a museum.
 
-## Getting Started
+## Technologies Used
+- Dart (Flutter)
+- Firebase
+- Google Maps API
 
-This project is a starting point for a Flutter application.
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/MbayeSyAmar/Museum.git
+   cd Museum
+   ```
+2. Install dependencies:
+   ```bash
+   flutter pub get
+   ```
+3. Run the application:
+   ```bash
+   flutter run
+   ```
 
-A few resources to get you started if this is your first Flutter project:
+## Main Features
+- Virtual museum tours with images and descriptions
+- Interactive map for navigation within the museum
+- User authentication and profile management
+- Bookmark favorite artworks
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Contribution
+Contributions are welcome! Fork this repository and submit your modifications via a pull request.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## License
+This project is licensed under the MIT License.
+
