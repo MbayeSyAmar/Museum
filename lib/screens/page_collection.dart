@@ -46,7 +46,7 @@ class _CollectionState extends State<Collection> {
 
       if (userDoc.exists) {
         setState(() {
-          points = userDoc['points'] ?? 0;
+          // points = userDoc['points'] ?? 0;
           collections = userDoc['collections'] ?? {};
           filteredKeys = collections.keys.toList(); // Initialisation
         });
@@ -587,15 +587,16 @@ class GridSection extends StatelessWidget {
                 color: unlocked ? Colors.transparent : Color(0xFFB7D6DD),
                 borderRadius: BorderRadius.circular(10),
                 image: unlocked && item['url'] != null
-                    ? DecorationImage(
-                        image: item['url'].startsWith('http')
-                            ? NetworkImage(item['url']) // URL distante
-                            : item['url'].startsWith('assets/')
-                                ? AssetImage(item['url']) // Chemin des assets
-                                : FileImage(File(item['url'])), // Chemin local
-                        fit: BoxFit.cover,
-                      )
-                    : null,
+    ? DecorationImage(
+        image: item['url'].startsWith('http')
+            ? NetworkImage(item['url']) as ImageProvider<Object> // ✅ Correction
+            : item['url'].startsWith('assets/')
+                ? AssetImage(item['url']) as ImageProvider<Object> // ✅ Correction
+                : FileImage(File(item['url'])) as ImageProvider<Object>, // ✅ Correction
+        fit: BoxFit.cover,
+    )
+    : null,
+
               ),
               child: Center(
                 child: unlocked

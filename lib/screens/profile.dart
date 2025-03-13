@@ -15,9 +15,9 @@ class ProfilScreen extends State<ProfilApp> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late User? _user;
   late Stream<DocumentSnapshot> _userStream;
-  int highestPoints = 0; // ✅ Stocke le score max
-  double progressBarWidth = 0.0; // ✅ Défini avec une valeur par défaut
-  int currentLevel = 1; // ✅ Niveau initial
+  int highestPoints = 0; //  Stocke le score max
+  double progressBarWidth = 0.0; //  Défini avec une valeur par défaut
+  int currentLevel = 1; //  Niveau initial
 
 
 
@@ -27,17 +27,17 @@ class ProfilScreen extends State<ProfilApp> {
     super.initState();
      _loadUserData();
      if (_user != null) {
-    _findMaxPoints(); // ✅ Mettre à jour les points en temps réel
+    _findMaxPoints(); //  Mettre à jour les points en temps réel
   }
     _user = _auth.currentUser;
   }
 void _loadUserData() {
     _user = _auth.currentUser; // Récupère l'utilisateur connecté
     if (_user != null) {
-      setState(() { // ✅ Force la mise à jour de l'UI après récupération des données
+      setState(() { //  Force la mise à jour de l'UI après récupération des données
         _userStream = _firestore.collection('users').doc(_user!.uid).snapshots();
       });
-       _findMaxPoints(); // ✅ Récupère le score max après avoir chargé les données
+       _findMaxPoints(); //  Récupère le score max après avoir chargé les données
     }
   }
   int calculateLevel(int points) {
@@ -101,11 +101,11 @@ Future<void> _deleteAccount() async {
       if (user != null) {
         String userEmail = user.email!;
 
-        // 🔥 Étape 1 : Supprimer les données Firestore
+        //  Étape 1 : Supprimer les données Firestore
         await _firestore.collection('users').doc(user.uid).delete();
-        print("✅ Données Firestore supprimées.");
+        print(" Données Firestore supprimées.");
 
-        // 🔥 Étape 2 : Déconnecter et rediriger AVANT la suppression du compte
+        //  Étape 2 : Déconnecter et rediriger AVANT la suppression du compte
         await _auth.signOut();
         // Navigator.of(context).pushReplacementNamed('/login');
         Navigator.push(
@@ -114,26 +114,26 @@ Future<void> _deleteAccount() async {
                     builder: (context) => const SignInScreen(),
                   ),
                 );
-        // 🔥 Étape 3 : Authentification récente nécessaire ?
+        //  Étape 3 : Authentification récente nécessaire ?
         try {
           AuthCredential credential = EmailAuthProvider.credential(
             email: userEmail,
-            password: "VOTRE_MOT_DE_PASSE_UTILISATEUR", // ⚠️ Remplace par une saisie utilisateur
+            password: "VOTRE_MOT_DE_PASSE_UTILISATEUR", //  Remplace par une saisie utilisateur
           );
 
           await user.reauthenticateWithCredential(credential);
-          print("✅ Authentification rafraîchie.");
+          print(" Authentification rafraîchie.");
         } catch (e) {
-          print("⚠️ Impossible de rafraîchir l'authentification : $e");
+          print(" Impossible de rafraîchir l'authentification : $e");
           return;
         }
 
-        // 🔥 Étape 4 : Supprimer l'utilisateur de Firebase Auth
+        //  Étape 4 : Supprimer l'utilisateur de Firebase Auth
         await user.delete();
-        print("✅ Compte supprimé de Firebase Auth.");
+        print(" Compte supprimé de Firebase Auth.");
       }
     } catch (e) {
-      print('❌ Erreur lors de la suppression du compte : $e');
+      print(' Erreur lors de la suppression du compte : $e');
     }
   }
 }
@@ -169,7 +169,7 @@ void _findMaxPoints() {
           currentLevel = (highestPoints / 10).floor() + 1;
           progressBarWidth = (highestPoints % 10) / 10.0;
 
-          // ✅ S'assurer que la barre ne soit jamais totalement vide
+          //  S'assurer que la barre ne soit jamais totalement vide
           if (progressBarWidth == 0.0 && highestPoints > 0) {
             progressBarWidth = 0.1;
           }
@@ -177,7 +177,7 @@ void _findMaxPoints() {
           progressBarWidth = progressBarWidth.clamp(0.1, 1.0);
         });
 
-        print("🔥 Niveau : $currentLevel | XP total : $highestPoints | Barre XP : $progressBarWidth");
+        print(" Niveau : $currentLevel | XP total : $highestPoints | Barre XP : $progressBarWidth");
       }
     }
   });
@@ -191,7 +191,7 @@ Widget build(BuildContext context) {
         : StreamBuilder<DocumentSnapshot>(
             stream: _userStream,
             builder: (context, snapshot) {
-              // ✅ Vérifie si les données sont disponibles
+              //  Vérifie si les données sont disponibles
               if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
                 return Center(
                   child: Column(
@@ -208,7 +208,7 @@ Widget build(BuildContext context) {
                 );
               }
 
-              // ✅ Vérifie si l'utilisateur a été supprimé
+              //  Vérifie si l'utilisateur a été supprimé
               var userData = snapshot.data!.data();
               if (userData == null) {
                 Future.delayed(Duration(seconds: 2), () {
@@ -223,7 +223,7 @@ Widget build(BuildContext context) {
                 );
               }
 
-              // ✅ Convertir en Map de manière sécurisée
+              //  Convertir en Map de manière sécurisée
               Map<String, dynamic> userMap = userData as Map<String, dynamic>;
 
               String pseudo = userMap['pseudo'] ?? 'Utilisateur';
@@ -231,8 +231,8 @@ Widget build(BuildContext context) {
               int level = calculateLevel(points);
               int remainingXP = calculateRemainingXP(points);
 
-              print("🔥 Nouveaux points détectés : $highestPoints");
-              print("🔥 Nouvelle largeur de la barre : $progressBarWidth");
+              print(" Nouveaux points détectés : $highestPoints");
+              print(" Nouvelle largeur de la barre : $progressBarWidth");
 
               return Stack(
                 children: [
